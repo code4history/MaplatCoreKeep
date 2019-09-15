@@ -4,6 +4,11 @@ Maplat is the cool Historical Map/Illustrated Map Viewer API.
 It can transform each map coordinates with nonlinear but homeomorphic projection and makes possible that the maps can collaborate with GPS/accurate maps, without distorting original maps.  
 This is part of [Maplat](https://github.com/code4history/Maplat/wiki) project.
 
+# Important Notice - deprecated
+
+maplat_core module is renamed as @maplat/core.  
+Please use [@maplat/core](https://www.npmjs.com/package/@maplat/core) module instead.
+
 ## Installation
 
 ### Browser
