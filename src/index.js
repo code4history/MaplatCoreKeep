@@ -13,6 +13,8 @@ import { HistMap_tin } from './histmap_tin'; // eslint-disable-line no-unused-va
 import { HistMap } from './histmap';
 import { NowMap, TmsMap, META_KEYS } from './source_ex';
 import { recursiveRound } from './math_ex';
+import '../less/core.less';
+import parts from './parts_loader';
 
 export class MaplatApp extends EventTarget {
     // Maplat App Class
@@ -62,7 +64,7 @@ export class MaplatApp extends EventTarget {
         // Add UI HTML Element
         const newElems = createElement('<img id="center_circle" class="prevent-default" ' +
             'style="position:absolute;top:50%;left:50%;margin-top:-10px;' +
-            'margin-left:-10px;" src="./parts/redcircle.png">');
+            `margin-left:-10px;" src="${parts.redcircle}">`);
         for (let i=newElems.length - 1; i >= 0; i--) {
             app.mapDivDocument.insertBefore(newElems[i], app.mapDivDocument.firstChild);
         }
@@ -523,7 +525,7 @@ export class MaplatApp extends EventTarget {
         const src = app.from;
         const icon = data.icon ?
             app.__selectedMarker == data.namespace_id && data.selected_icon ? data.selected_icon : data.icon :
-            app.__selectedMarker == data.namespace_id ? 'parts/defaultpin_selected.png' : 'parts/defaultpin.png';
+            app.__selectedMarker == data.namespace_id ? parts.defaultpin_selected : parts.defaultpin;
         const promise = coords ?
             (function() {
                 return src.merc2XyAsync(coords, true);
