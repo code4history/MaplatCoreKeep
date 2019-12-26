@@ -109,7 +109,8 @@ export class MaplatMap extends Map {
             view: new View({
                 center: optOptions.default_center || [0, 0],
                 zoom: optOptions.default_zoom || 2,
-                rotation: optOptions.default_rotation || 0
+                rotation: optOptions.default_rotation || 0,
+                multiWorld: true
             })
         };
         if (optOptions.interactions) {
