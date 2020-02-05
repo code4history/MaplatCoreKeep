@@ -548,7 +548,12 @@ export function setCustomInitialize(self, options) {
     self.map_option = options.map_option || {};
     self.home_position = options.home_position;
     self.merc_zoom = options.merc_zoom;
-    self.thumbnail = options.thumbnail || `./tmbs/${options.mapID || options.sourceID}_menu.jpg`;
+    if (options.thumbnail) {
+        self.thumbnail = options.thumbnail;
+    } else {
+        self.thumbnail = `./tmbs/${options.mapID || options.sourceID}.jpg`;
+        self.legacy_thumbnail = `./tmbs/${options.mapID || options.sourceID}_menu.jpg`;
+    }
     self.label = options.label;
     self.maxZoom = options.maxZoom;
     self.minZoom = options.minZoom;
