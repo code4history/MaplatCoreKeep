@@ -1,3 +1,6 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
 var MaplatApp = require('../src/index').MaplatApp;
 
 var Maplat = window.Maplat = {};
