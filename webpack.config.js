@@ -15,10 +15,10 @@ module.exports = {
         rules: [
             {
                 test: /\.js$/,
-                exclude: /node_modules(?!\/@maplat\/tin)/,
+//                exclude: /nodes_modules(?!\/@maplat\/tin)/,
                 use: {
                     loader: 'babel-loader',
-                    query: {
+                    options: {
                         "presets": [
                             [
                                 "@babel/preset-env",

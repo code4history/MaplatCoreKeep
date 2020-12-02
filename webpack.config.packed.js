@@ -18,7 +18,7 @@ module.exports = {
                 exclude: /node_modules(?!\/@maplat\/tin)/,
                 use: {
                     loader: 'babel-loader',
-                    query: {
+                    options: {
                         "presets": [
                             [
                                 "@babel/preset-env",
