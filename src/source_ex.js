@@ -6,9 +6,108 @@ import centroid from '@turf/centroid';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import lineIntersect from '@turf/line-intersect';
 import { normalizeLayers, addIdToPoi, normalizeLayer, normalizePoi } from './normalize_pois';
+import Weiwudi from "weiwudi";
+import {normalizeArg} from "./functions";
 
 export function setCustomFunction(target) {
     class Mixin extends target {
+        setupTileCacheAsnyc() {
+            const self = this;
+            return new Promise((resolve) => {
+                const openDB = indexedDB.open(`MaplatDB_${self.mapID}`); // eslint-disable-line no-undef
+                openDB.onupgradeneeded = function (event) {
+                    const db = event.target.result;
+                    db.createObjectStore('tileCache', {keyPath: 'z_x_y'});
+                };
+                openDB.onsuccess = function (event) {
+                    const db = event.target.result;
+                    self.cache_db = db;
+                    resolve();
+                };
+                openDB.onerror = function (error) { // eslint-disable-line no-unused-vars
+                    self.cache_db = undefined;
+                    resolve();
+                };
+            });
+        }
+
+        clearTileCacheAsync(reopen) {
+            const self = this;
+            return new Promise((resolve, reject) => {
+                if (!self.cache_db) {
+                    if (reopen) {
+                        self.setupTileCacheAsnyc().then(() => {
+                            resolve();
+                        }).catch((error) => {
+                            reject(error);
+                        });
+                    } else {
+                        resolve();
+                    }
+                    return;
+                }
+                const db = self.cache_db;
+                self.cache_db = undefined;
+                const dbName = `MaplatDB_${self.mapID}`;
+                db.close();
+
+                const deleteReq = indexedDB.deleteDatabase(dbName); // eslint-disable-line no-undef
+
+                deleteReq.onsuccess = (event) => { // eslint-disable-line no-unused-vars
+                    if (reopen) {
+                        self.setupTileCacheAsnyc().then(() => {
+                            resolve();
+                        }).catch((error) => {
+                            reject(error);
+                        });
+                    } else {
+                        resolve();
+                    }
+                };
+                deleteReq.onerror = function (error) {
+                    reject(error);
+                };
+            });
+        }
+
+        getTileCacheSizeAsync() {
+            const self = this;
+            const toSize = function (items) {
+                let size = 0;
+                for (let i = 0; i < items.length; i++) {
+                    const objectSize = JSON.stringify(items[i]).length;
+                    size += objectSize;
+                }
+                return size;
+            };
+
+            return new Promise(((resolve, reject) => {
+                if (!self.cache_db) {
+                    resolve(0);
+                    return;
+                }
+                const db = self.cache_db;
+                const tx = db.transaction('tileCache', 'readonly');
+                const store = tx.objectStore('tileCache');
+                const items = [];
+                tx.oncomplete = function (evt) { // eslint-disable-line no-unused-vars
+                    const szBytes = toSize(items);
+                    resolve(szBytes);
+                };
+                const cursorRequest = store.openCursor();
+                cursorRequest.onerror = function (error) {
+                    reject(error);
+                };
+                cursorRequest.onsuccess = function (evt) {
+                    const cursor = evt.target.result;
+                    if (cursor) {
+                        items.push(cursor.value);
+                        cursor.continue();
+                    }
+                };
+            }));
+        }
+
         getMap() {
             return this._map;
         }
@@ -268,7 +367,7 @@ export function setCustomFunction(target) {
         async resolvePois(pois) {
             this.pois = await normalizeLayers(pois || [], {
                 name: this.officialTitle || this.title,
-                namespace: this.sourceID
+                namespace: this.mapID
             });
         }
 
@@ -294,7 +393,7 @@ export function setCustomFunction(target) {
                 this.pois[clusterId]['pois'].push(data);
                 addIdToPoi(this.pois, clusterId, {
                     name: this.officialTitle || this.title,
-                    namespace: this.sourceID
+                    namespace: this.mapID
                 });
                 return data.namespace_id;
             }
@@ -345,7 +444,7 @@ export function setCustomFunction(target) {
             if (this.pois[id]) return;
             this.pois[id] = normalizeLayer(data || [], id, {
                 name: this.officialTitle || this.title,
-                namespace: this.sourceID
+                namespace: this.mapID
             });
         }
 
@@ -365,20 +464,49 @@ const META_KEYS_OPTION = ['title', 'official_title', 'author', 'created_at', 'er
     'contributor', 'mapper', 'license', 'data_license', 'attr', 'data_attr',
     'reference', 'description'];
 
+export function registerMapToSW(options) {
+    options = normalizeArg(options);
+    const setting = {};
+    setting.type = options.type || 'xyz';
+    const enable_cache = (setting.type === 'xyz' || setting.type === 'wmts') ? options.enable_cache : false;
+    setting.url = options.url;
+    setting.maxZoom = options.max_zoom;
+    setting.minZoom = options.min_zoom;
+    const lngLats = options.envelope_lnglats;
+    if (lngLats) {
+        const minMax = lngLats.reduce((prev, curr) => {
+            prev[0] = prev[0] > curr[0] ? curr[0] : prev[0];
+            prev[1] = prev[1] < curr[0] ? curr[0] : prev[1];
+            prev[2] = prev[2] > curr[1] ? curr[1] : prev[2];
+            prev[3] = prev[3] < curr[1] ? curr[1] : prev[3];
+            return prev;
+        }, [Infinity, -Infinity, Infinity, -Infinity]);
+        ['minLng', 'maxLng', 'minLat', 'maxLat'].map((key, index) => {
+            setting[key] = minMax[index];
+        });
+    }
+    if (!enable_cache) return;
+    try {
+        return Weiwudi.registerMap(options.map_id, setting);
+    } catch (e) { // eslint-disable-line no-empty
+    }
+}
+
 export function setCustomInitialize(self, options) {
-    self.sourceID = options.source_id || options.sourceID;
+    options = normalizeArg(options);
+    self.mapID = options.map_id;
     self.homePosition = options.home_position;
     self.mercZoom = options.merc_zoom;
     self.label = options.label;
-    self.maxZoom = options.max_zoom || options.maxZoom;
-    self.minZoom = options.min_zoom || options.minZoom;
+    self.maxZoom = options.max_zoom;
+    self.minZoom = options.min_zoom;
     self.poiTemplate = options.poi_template;
     self.poiStyle = options.poi_style;
     self.iconTemplate = options.icon_template;
-    self.mercatorXShift = options.mercatorXShift;
-    self.mercatorYShift = options.mercatorYShift;
-    if (options.envelope_lnglats || options.envelopeLngLats || options.envelopLngLats) {
-        const lngLats = options.envelope_lnglats || options.envelopeLngLats || options.envelopLngLats;
+    self.mercatorXShift = options.mercator_x_shift;
+    self.mercatorYShift = options.mercator_y_shift;
+    if (options.envelope_lnglats) {
+        const lngLats = options.envelope_lnglats;
         const mercs = lngLats.map((lnglat) => transform(lnglat, 'EPSG:4326', 'EPSG:3857'));
         mercs.push(mercs[0]);
         self.envelope = polygon([mercs]);
@@ -395,21 +523,22 @@ export function setCustomInitialize(self, options) {
         self.thumbnail = options.thumbnail;
         resolve();
     }) : new Promise((resolve) => {
-        self.thumbnail = `./tmbs/${options.map_id || options.mapID || options.source_id || options.sourceID}.jpg`;
+        self.thumbnail = `./tmbs/${self.mapID}.jpg`;
         fetch(self.thumbnail).then((response) => { // eslint-disable-line no-undef
             if(response.ok) {
                 resolve();
             } else {
-                self.thumbnail = `./tmbs/${options.map_id || options.mapID || options.source_id || options.sourceID}_menu.jpg`;
+                self.thumbnail = `./tmbs/${self.mapID}_menu.jpg`;
                 resolve();
             }
         }).catch((error) => { // eslint-disable-line no-unused-vars
-            self.thumbnail = `./tmbs/${options.map_id || options.mapID || options.source_id || options.sourceID}_menu.jpg`;
+            self.thumbnail = `./tmbs/${self.mapID}_menu.jpg`;
             resolve();
         });
     });
+    const cacheWait = options.enable_cache ? self.setupTileCacheAsnyc() : Promise.resolve();
     const poisWait = self.resolvePois(options.pois);
-    self.initialWait = Promise.all([poisWait, thumbWait]);
+    self.initialWait = Promise.all([cacheWait, poisWait, thumbWait]);
 }
 
 export function setupTileLoadFunction(target) {
@@ -515,20 +644,23 @@ export function setupTileLoadFunction(target) {
 
 export class NowMap extends setCustomFunction(OSM) {
     constructor(optOptions) {
-        const options = Object.assign({}, optOptions || {});
+        const options = normalizeArg(Object.assign({}, optOptions || {}));
         if (!options.image_extention) options.image_extention = options.imageExtention || 'jpg';
-        if (options.map_id || options.mapID) {
-            if ((options.map_id || options.mapID) != 'osm') {
+        if (options.map_id) {
+            if ((options.map_id) != 'osm') {
                 options.url = options.url ||
-                    (options.tms ? `tiles/${options.map_id || options.mapID}/{z}/{x}/{-y}.${options.image_extention}` :
-                        `tiles/${options.map_id || options.mapID}/{z}/{x}/{y}.${options.image_extention}`);
+                    (options.tms ? `tiles/${options.map_id}/{z}/{x}/{-y}.${options.image_extention}` :
+                        `tiles/${options.map_id}/{z}/{x}/{y}.${options.image_extention}`);
             }
         }
-        if (!options.maxZoom) options.maxZoom = options.max_zoom;
+        if (!options.type) options.type = 'wmts';
+        const weiwudi = registerMapToSW(options);
+        if (weiwudi) options.url = weiwudi.url;
         super(options);
-        if (options.map_id || options.mapID) {
-            this.mapID = options.map_id || options.mapID;
+        if (options.map_id) {
+            this.mapID = options.map_id;
         }
+        this.weiwudi = weiwudi;
         setCustomInitialize(this, options);
         setupTileLoadFunction(this);
     }
@@ -597,6 +729,7 @@ export class TmsMap extends NowMap {
 export class MapboxMap extends NowMap {
     constructor(optOptions) {
         const options = optOptions || {};
+        options.type = 'vector';
         super(options);
         this.style = options.style;
         this.mapboxMap = options.mapboxMap;

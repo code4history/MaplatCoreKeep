@@ -37,6 +37,7 @@ export class MaplatApp extends EventTarget {
         app.mapDivDocument = document.querySelector(`#${app.mapDiv}`); // eslint-disable-line no-undef
         app.mapDivDocument.classList.add('maplat');
         app.logger = new Logger(appOption.debug ? LoggerLevel.ALL : LoggerLevel.INFO);
+        app.enableCache = appOption.enable_cache || false;
         app.stateBuffer = {};
         app.translateUI = appOption.translate_ui;
         const setting = appOption.setting;
@@ -54,7 +55,7 @@ export class MaplatApp extends EventTarget {
             const lastEpoch = parseInt(localStorage.getItem('epoch') || 0); // eslint-disable-line no-undef
             const currentTime = Math.floor(new Date().getTime() / 1000);
             if (lastEpoch && currentTime - lastEpoch < 3600) {
-                app.initialRestore.sourceID = localStorage.getItem('sourceID'); // eslint-disable-line no-undef
+                app.initialRestore.mapID = localStorage.getItem('sourceID'); // eslint-disable-line no-undef
                 app.initialRestore.backgroundID = localStorage.getItem('backgroundID') || localStorage.getItem('backID'); // eslint-disable-line no-undef
                 app.initialRestore.position = {
                     x: parseFloat(localStorage.getItem('x')), // eslint-disable-line no-undef
@@ -141,6 +142,7 @@ export class MaplatApp extends EventTarget {
             zoom_restriction: mapReturnValue.zoomRestriction,
             merc_min_zoom: mapReturnValue.mercMinZoom,
             merc_max_zoom: mapReturnValue.mercMaxZoom,
+            enable_cache: app.enableCache,
             translator(fragment) {
                 return app.translate(fragment);
             }
@@ -295,7 +297,7 @@ export class MaplatApp extends EventTarget {
                 source.mapboxMap = app.mapboxMap;
             }
             cache.push(source);
-            app.cacheHash[source.sourceID] = source;
+            app.cacheHash[source.mapID] = source;
         }
 
         app.dispatchEvent(new CustomEvent('sourceLoaded', sources));
@@ -313,12 +315,12 @@ export class MaplatApp extends EventTarget {
     setInitialMap(cache) {
         const app = this;
 
-        const initial = app.initialRestore.sourceID || app.startFrom || cache[cache.length - 1].sourceID;
+        const initial = app.initialRestore.mapID || app.startFrom || cache[cache.length - 1].mapID;
         app.from = cache.reduce((prev, curr) => {
             if (prev) {
-                return !(prev instanceof HistMap) && curr.sourceID != initial ? curr : prev;
+                return !(prev instanceof HistMap) && curr.mapID != initial ? curr : prev;
             }
-            if (curr.sourceID != initial) return curr;
+            if (curr.mapID != initial) return curr;
             return prev;
         }, null);
         app.changeMap(initial, app.initialRestore);
@@ -562,9 +564,9 @@ export class MaplatApp extends EventTarget {
         return createMapInfo(app.from);
     }
 
-    mapInfo(sourceID) {
+    mapInfo(mapID) {
         const app = this;
-        return createMapInfo(app.cacheHash[sourceID]);
+        return createMapInfo(app.cacheHash[mapID]);
     }
 
     setMarker(data) {
@@ -926,11 +928,11 @@ export class MaplatApp extends EventTarget {
         this.from.setGPSMarker(position, true);
     }
 
-    changeMap(sourceID, restore) {
+    changeMap(mapID, restore) {
         const app = this;
         if (!restore) restore = {};
         const now = app.cacheHash['osm'];
-        const to = app.cacheHash[sourceID];
+        const to = app.cacheHash[mapID];
 
         if (!app.changeMapSeq) {
             app.changeMapSeq = Promise.resolve();
@@ -966,7 +968,7 @@ export class MaplatApp extends EventTarget {
                                     backTo = backSrc;
                                 }
                             }
-                            app.requestUpdateState({backgroundID: backTo.sourceID});
+                            app.requestUpdateState({backgroundID: backTo.mapID});
                         } else if (to instanceof NowMap) {
                             // If new foreground source is basemap or TMS overlay, remove source from background map
                             app.backMap.exchangeSource();
@@ -983,14 +985,14 @@ export class MaplatApp extends EventTarget {
                             const backToLocal = backSrc || now;
                             app.mapObject.exchangeSource(backToLocal);
                         }
-                        app.requestUpdateState({backgroundID: app.mapObject.getSource().sourceID});
+                        app.requestUpdateState({backgroundID: app.mapObject.getSource().mapID});
                     } else {
                         // Remove overlay from foreground and set current source to foreground
                         app.mapObject.setLayer();
                         app.mapObject.exchangeSource(to);
                     }
                     const updateState = {
-                        sourceID: to.sourceID
+                        mapID: to.mapID
                     };
                     if (to instanceof NowMap && !(to instanceof TmsMap)) {
                         updateState.backgroundID = '____delete____';
@@ -1037,7 +1039,7 @@ export class MaplatApp extends EventTarget {
                             app.setLine(data);
                         })(app.lines[i]);
                     }
-                    app.dispatchEvent(new CustomEvent('mapChanged', app.getMapMeta(to.sourceID)));
+                    app.dispatchEvent(new CustomEvent('mapChanged', app.getMapMeta(to.mapID)));
 
                     app.mapObject.updateSize();
                     app.mapObject.renderSync();
@@ -1110,13 +1112,13 @@ export class MaplatApp extends EventTarget {
         this.from.setViewpoint(cond);
     }
 
-    getMapMeta(sourceID) {
+    getMapMeta(mapID) {
         const app = this;
         let source;
-        if (!sourceID) {
+        if (!mapID) {
             source = app.from;
         } else {
-            source = app.cacheHash[sourceID];
+            source = app.cacheHash[mapID];
         }
         if (!source) return;
 
@@ -1124,7 +1126,7 @@ export class MaplatApp extends EventTarget {
             prev[curr] = source[curr];
             return prev;
         }, {
-            sourceID: source.sourceID,
+            mapID: source.mapID,
             label: source.label
         });
     }
@@ -1136,8 +1138,8 @@ export class MaplatApp extends EventTarget {
         const current = recursiveRound([
             view.getCenter(), view.getZoom(), view.getRotation()
         ], 10);
-        if (app.mercBuffer && app.mercBuffer.mercs && app.mercBuffer.buffer[app.from.sourceID]) {
-            const buffer = app.mercBuffer.buffer[app.from.sourceID];
+        if (app.mercBuffer && app.mercBuffer.mercs && app.mercBuffer.buffer[app.from.mapID]) {
+            const buffer = app.mercBuffer.buffer[app.from.mapID];
             if (buffer[0][0] == current[0][0] && buffer[0][1] == current[0][1] &&
                 buffer[1] == current[1] && buffer[2] == current[2]) {
                 app.logger.debug(buffer);
@@ -1150,21 +1152,21 @@ export class MaplatApp extends EventTarget {
                 app.mercBuffer = {
                     buffer: {}
                 };
-                app.mercBuffer.buffer[app.from.sourceID] = current;
+                app.mercBuffer.buffer[app.from.mapID] = current;
             }
         } else {
             app.mercBuffer = {
                 buffer: {}
             };
-            app.mercBuffer.buffer[app.from.sourceID] = current;
+            app.mercBuffer.buffer[app.from.mapID] = current;
         }
         app.logger.debug(`From: Center: ${current[0]} Zoom: ${current[1]} Rotation: ${current[2]}`);
-        app.logger.debug(`From: ${app.from.sourceID}`);
+        app.logger.debug(`From: ${app.from.mapID}`);
         fromPromise.then((mercs) => {
             app.mercBuffer.mercs = mercs;
             app.logger.debug(`Mercs: ${mercs}`);
             let toPromise = to.mercs2SizeAsync(mercs);
-            const key = to.sourceID;
+            const key = to.mapID;
             if (app.mercBuffer.buffer[key]) {
                 app.logger.debug('To: Use buffer');
                 toPromise = new Promise(((res, rej) => { // eslint-disable-line no-unused-vars
@@ -1173,8 +1175,8 @@ export class MaplatApp extends EventTarget {
             }
             toPromise.then((size) => {
                 app.logger.debug(`To: Center: ${size[0]} Zoom: ${size[1]} Rotation: ${size[2]}`);
-                app.logger.debug(`To: ${to.sourceID}`);
-                app.mercBuffer.buffer[to.sourceID] = recursiveRound(size, 10);
+                app.logger.debug(`To: ${to.mapID}`);
+                app.mercBuffer.buffer[to.mapID] = recursiveRound(size, 10);
                 callback(size);
             }).catch((err) => {
                 throw err;
