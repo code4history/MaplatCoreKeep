@@ -37,7 +37,7 @@ describe("Puppeteer test", () => {
               await page.mouse.click(132, 103, { button: "left" });
             } else if (status === 1) {
               expect(`${json.longitude}`).toMatch("141.08653");
-              expect(`${json.latitude}`).toMatch("39.7415");
+              expect(`${json.latitude}`).toMatch("39.74151");
               done();
             }
         }
