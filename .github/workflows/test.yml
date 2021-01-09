@@ -13,7 +13,9 @@ jobs:
         with:
           node-version: "13.14.0"
       - run: npm install
+      - run: npm run server:e2e &
       - run: npm run lint
-      - run: npm run test
+      - run: npm run test:functions
+      - run: npm run test:puppeteer
       - run: npm run typecheck
       - run: npm run build
