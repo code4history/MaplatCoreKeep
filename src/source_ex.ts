@@ -131,7 +131,7 @@ export async function mapSourceFactory(options: any, commonOptions: any) {
           console.log(JSON.parse(JSON.stringify(resp)));
           options = normalizeArg(Object.assign(resp, options));
           console.log("### After normalize: options");
-          console.log(options);
+          console.log(JSON.parse(JSON.stringify(options)));
           options.label = options.label || resp.year;
           if (options.translator) {
             options.url = options.translator(options.url);

@@ -195,7 +195,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                                                 console.log(JSON.parse(JSON.stringify(resp)));
                                                 options = functions_1.normalizeArg(Object.assign(resp, options));
                                                 console.log("### After normalize: options");
-                                                console.log(options);
+                                                console.log(JSON.parse(JSON.stringify(options)));
                                                 options.label = options.label || resp.year;
                                                 if (options.translator) {
                                                     options.url = options.translator(options.url);
