@@ -87,8 +87,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                         case 1:
                             histmaps = _a.sent();
                             options = histmaps[0];
-                            console.log("After: createAsync");
-                            console.log(JSON.parse(JSON.stringify(options)));
                             obj = new HistMap_tin(options);
                             obj.tins = histmaps[1];
                             proj = new Projection_1.default({

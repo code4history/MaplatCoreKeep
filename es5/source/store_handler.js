@@ -186,11 +186,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     case 9:
                         ret.sub_maps = sub_maps;
                         _a.label = 10;
-                    case 10:
-                        console.log(store);
-                        console.log(ret);
-                        console.log(tins);
-                        return [2, [ret, tins]];
+                    case 10: return [2, [ret, tins]];
                 }
             });
         });

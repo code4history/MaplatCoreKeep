@@ -21,8 +21,6 @@ export class HistMap_tin extends HistMap {
   static async createAsync(options: any) {
     const histmaps = await store2HistMap4Core(options);
     options = histmaps[0];
-    console.log("After: createAsync");
-    console.log(JSON.parse(JSON.stringify(options)));
     const obj = new HistMap_tin(options);
     obj.tins = histmaps[1] as Tin[];
     const proj = new Projection({
