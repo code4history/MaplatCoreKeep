@@ -19,8 +19,6 @@ export class HistMap_tin extends HistMap {
   }
 
   static async createAsync(options: any) {
-    console.log("Before: createAsync");
-    console.log(JSON.parse(JSON.stringify(options)));
     const histmaps = await store2HistMap4Core(options);
     options = histmaps[0];
     console.log("After: createAsync");

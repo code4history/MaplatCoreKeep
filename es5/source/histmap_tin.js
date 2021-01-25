@@ -83,10 +83,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 var histmaps, obj, proj;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0:
-                            console.log("Before: createAsync");
-                            console.log(JSON.parse(JSON.stringify(options)));
-                            return [4, store_handler_1.store2HistMap4Core(options)];
+                        case 0: return [4, store_handler_1.store2HistMap4Core(options)];
                         case 1:
                             histmaps = _a.sent();
                             options = histmaps[0];

@@ -134,7 +134,7 @@ async function store2HistMap_internal(
   }
 
   if (store.sub_maps) {
-    ret.sub_maps = [] as SubMap[];
+    const sub_maps = [] as SubMap[];
     for (let i = 0; i < store.sub_maps.length; i++) {
       const sub_map = store.sub_maps[i];
       const sub: any = {};
@@ -171,8 +171,9 @@ async function store2HistMap_internal(
           tin = (tin as Tin).getCompiled();
         tins.push(tin);
       }
-      ret.sub_maps!.push(sub as SubMap);
+      sub_maps.push(sub as SubMap);
     }
+    ret.sub_maps = sub_maps;
   }
 
   console.log(store);
