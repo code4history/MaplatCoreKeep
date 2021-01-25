@@ -184,7 +184,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                         i++;
                         return [3, 4];
                     case 9:
-                        console.log(ret.title);
+                        console.log(store);
+                        console.log(ret);
                         console.log(tins);
                         return [2, [ret, tins]];
                 }

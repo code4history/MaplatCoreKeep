@@ -175,7 +175,8 @@ async function store2HistMap_internal(
     }
   }
 
-  console.log(ret.title);
+  console.log(store);
+  console.log(ret);
   console.log(tins);
   return [ret as HistMapStore, tins];
 }
