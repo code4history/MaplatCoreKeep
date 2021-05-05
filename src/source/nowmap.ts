@@ -44,10 +44,8 @@ export class NowMap extends setCustomFunction(OSM) {
   }
 
   merc2XyAsync(merc: Coordinate): Promise<Coordinate | undefined> {
-    return new Promise((resolve, _reject) => {
-      resolve(merc);
-    });
-  }
+    return this._merc2XyAsnyc(merc);
+  } // unifyTerm仮対応済
 
   insideCheckXy(xy: Coordinate) {
     if (!this.envelope) return true;
@@ -72,5 +70,24 @@ export class NowMap extends setCustomFunction(OSM) {
 
   modulateHistMapCoordsInside(histCoords: any) {
     return this.modulateXyInside(histCoords);
+  }
+
+  // unifyTerm対応
+  // https://github.com/code4history/MaplatCore/issues/19
+
+  _merc2XyAsnyc(merc: Coordinate, ignoreBackside = false): Promise<Coordinate | undefined> {
+    return Promise.resolve(merc);
+  }
+
+  _xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
+    return Promise.resolve(xy);
+  }
+
+  _xy2SysCoord(xy: Coordinate): Coordinate {
+    return xy;
+  }
+
+  _sysCoord2Xy(sysCoord: Coordinate): Coordinate {
+    return sysCoord;
   }
 }

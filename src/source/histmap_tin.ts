@@ -333,18 +333,32 @@ export class HistMap_tin extends HistMap {
   }
 
   xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
-    const convertXy = this.histMapCoords2Xy(xy);
-    return this.xy2MercAsync_returnLayer(convertXy).then(ret => ret[1]);
-  }
+    return this._sysCoord2MercAsync(xy);
+  } // unifyTerm仮対応済
 
   merc2XyAsync(
     merc: Coordinate,
     ignoreBackside = false
   ): Promise<Coordinate | undefined> {
+    return this._merc2SysCoordAsync(merc, ignoreBackside);
+  } // unifyTerm仮対応済
+
+  // unifyTerm対応
+  // https://github.com/code4history/MaplatCore/issues/19
+
+  _merc2XyAsync(
+    merc: Coordinate,
+    ignoreBackside = false
+  ): Promise<Coordinate | undefined> {
     return this.merc2XyAsync_returnLayer(merc).then(ret => {
       if (ignoreBackside && !ret[0]) return;
-      const convertXy = !ret[0] ? ret[1]![1] : ret[0][1];
-      return this.xy2HistMapCoords(convertXy);
+      return !ret[0] ? ret[1]![1] : ret[0][1];
     });
+  }
+
+  _xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
+    return this.xy2MercAsync_returnLayer(xy).then(ret => ret[1]);
+    //const convertXy = this.histMapCoords2Xy(xy);
+    //return this.xy2MercAsync_returnLayer(convertXy).then(ret => ret[1]);
   }
 }

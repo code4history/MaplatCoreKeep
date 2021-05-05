@@ -74,16 +74,13 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
             const x = coord[1];
             const y = coord[2];
             if (
-              // @ts-expect-error ts-migrate(2683)
               x * tileSize * Math.pow(2, this.maxZoom - z) >= this.width ||
-              // @ts-expect-error ts-migrate(2683)
               y * tileSize * Math.pow(2, this.maxZoom - z) >= this.height ||
               x < 0 ||
               y < 0
             ) {
               return transPng;
             }
-            // @ts-expect-error ts-migrate(2683)
             return this._tileUrlFunction(coord);
           };
         return options;
@@ -111,16 +108,12 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
   }
 
   histMapCoords2Xy(histCoords: Coordinate): Coordinate {
-    const x = ((histCoords[0] + MERC_MAX) * this._maxxy) / (2 * MERC_MAX);
-    const y = ((-histCoords[1] + MERC_MAX) * this._maxxy) / (2 * MERC_MAX);
-    return [x, y];
-  }
+    return this._sysCoord2Xy(histCoords);
+  } // unifyTerm仮対応
 
   xy2HistMapCoords(xy: Coordinate): Coordinate {
-    const histX = (xy[0] * (2 * MERC_MAX)) / this._maxxy - MERC_MAX;
-    const histY = -1 * ((xy[1] * (2 * MERC_MAX)) / this._maxxy - MERC_MAX);
-    return [histX, histY];
-  }
+    return this._xy2SysCoord(xy);
+  } // unifyTerm仮対応
 
   insideCheckXy(xy: Coordinate) {
     return !(
@@ -149,5 +142,20 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
     const xy = this.histMapCoords2Xy(histCoords);
     const ret = this.modulateXyInside(xy);
     return this.xy2HistMapCoords(ret);
+  }
+
+  // unifyTerm対応
+  // https://github.com/code4history/MaplatCore/issues/19
+
+  _xy2SysCoord(xy: Coordinate): Coordinate {
+    const sysCoordX = (xy[0] * (2 * MERC_MAX)) / this._maxxy - MERC_MAX;
+    const sysCoordY = -1 * ((xy[1] * (2 * MERC_MAX)) / this._maxxy - MERC_MAX);
+    return [sysCoordX, sysCoordY];
+  }
+
+  _sysCoord2Xy(sysCoord: Coordinate): Coordinate {
+    const x = ((sysCoord[0] + MERC_MAX) * this._maxxy) / (2 * MERC_MAX);
+    const y = ((-sysCoord[1] + MERC_MAX) * this._maxxy) / (2 * MERC_MAX);
+    return [x, y];
   }
 }

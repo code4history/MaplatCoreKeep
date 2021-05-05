@@ -227,12 +227,8 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
 
     // size(画面サイズ)とズームから、地図面座標上での半径を得る。zoom無指定の場合は自動取得
     getRadius(size: Size, zoom?: number) {
-      const radius = Math.floor(Math.min(size[0], size[1]) / 4);
-      if (zoom === undefined) {
-        zoom = this._map?.getView().getDecimalZoom();
-      }
-      return (radius * MERC_MAX) / 128 / Math.pow(2, zoom!);
-    }
+      return this._zoom2Radius(size, zoom);
+    } // unifyTerm仮対応済
 
     // メルカトルの中心座標とメルカトルズームから、メルカトル5座標値に変換
     mercsFromGivenMercZoom(
@@ -281,19 +277,8 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
 
     // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
     size2Xys(center?: Coordinate, zoom?: number, rotate?: number) {
-      if (center === undefined) {
-        center = this._map!.getView().getCenter();
-      }
-      const size = this._map!.getSize()!;
-      const radius = this.getRadius(size, zoom);
-      const crossDelta = this.rotateMatrix(MERC_CROSSMATRIX, rotate);
-      const cross = crossDelta.map(xy => [
-        xy[0] * radius + center![0],
-        xy[1] * radius + center![1]
-      ]);
-      cross.push(size);
-      return cross;
-    }
+      return this._viewPoint2SysCoords(center, zoom, rotate);
+    } // unifyTerm仮対応済
 
     // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
     size2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number) {
@@ -325,44 +310,8 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
 
     // 地図座標5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
     xys2Size(xys: Coordinate[]): [Coordinate, number, number] {
-      const center = xys[0];
-      let size = xys[5];
-      const nesw = xys.slice(1, 5);
-      const neswDelta = nesw.map(val => [
-        val[0] - center[0],
-        val[1] - center[1]
-      ]);
-      const normal = [
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [0.0, -1.0],
-        [-1.0, 0.0]
-      ];
-      let abss = 0;
-      let cosx = 0;
-      let sinx = 0;
-      for (let i = 0; i < 4; i++) {
-        const delta = neswDelta[i];
-        const norm = normal[i];
-        const abs = Math.sqrt(Math.pow(delta[0], 2) + Math.pow(delta[1], 2));
-        abss += abs;
-        const outer = delta[0] * norm[1] - delta[1] * norm[0];
-        const inner = Math.acos(
-          (delta[0] * norm[0] + delta[1] * norm[1]) / abs
-        );
-        const theta = outer > 0.0 ? -1.0 * inner : inner;
-        cosx += Math.cos(theta);
-        sinx += Math.sin(theta);
-      }
-      const scale = abss / 4.0;
-      const omega = Math.atan2(sinx, cosx);
-
-      if (!size) size = this._map!.getSize()!;
-      const radius = Math.floor(Math.min(size[0], size[1]) / 4);
-      const zoom = Math.log((radius * MERC_MAX) / 128 / scale) / Math.log(2);
-
-      return [center, zoom, omega];
-    }
+      return this._sysCoords2ViewPoint(xys);
+    } // unifyTerm仮対応済
 
     mercs2MercRotation(xys: Coordinate[]) {
       const center = xys[0];
@@ -502,6 +451,103 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       if (!this.pois[id]) return;
       delete this.pois[id];
     }
+
+    // unifyTerm対応
+    // https://github.com/code4history/MaplatCore/issues/19
+
+    abstract _merc2XyAsnyc(merc: Coordinate, ignoreBackside?: boolean): Promise<Coordinate | undefined>;
+    abstract _xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
+    abstract _xy2SysCoord(xy: Coordinate): Coordinate;
+    abstract _sysCoord2Xy(sysCoord: Coordinate): Coordinate;
+
+    _merc2SysCoordAsync(
+        merc: Coordinate,
+        ignoreBackside = false
+    ): Promise<Coordinate | undefined> {
+      return this._merc2XyAsnyc(merc, ignoreBackside).then(xy => xy ? this._xy2SysCoord(xy) : xy);
+    }
+
+    _sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate> {
+      const xy = this._sysCoord2Xy(sysCoord);
+      return this._xy2MercAsync(xy);
+    }
+
+    // size(画面サイズ)とズームから、地図面座標上での半径を得る。zoom無指定の場合は自動取得
+    _zoom2Radius(size: Size, zoom?: number) {
+      const radius = Math.floor(Math.min(size[0], size[1]) / 4);
+      if (zoom === undefined) {
+        zoom = this._map?.getView().getDecimalZoom();
+      }
+      return (radius * MERC_MAX) / 128 / Math.pow(2, zoom!);
+    }
+
+    // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
+    _viewPoint2SysCoords(center?: Coordinate, zoom?: number, rotate?: number, size?: Size) {
+      if (center === undefined) {
+        center = this._map!.getView().getCenter();
+      }
+      if (size === undefined) {
+        size = this._map!.getSize()!;
+      }
+      const radius = this.getRadius(size, zoom);
+      const crossDelta = this.rotateMatrix(MERC_CROSSMATRIX, rotate);
+      const cross = crossDelta.map(xy => [
+        xy[0] * radius + center![0],
+        xy[1] * radius + center![1]
+      ]);
+      cross.push(size);
+      return cross;
+    }
+
+    // 地図座標5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
+    _sysCoords2ViewPoint(xys: Coordinate[]): [Coordinate, number, number] {
+      const center = xys[0];
+      let size = xys[5];
+      const nesw = xys.slice(1, 5);
+      const neswDelta = nesw.map(val => [
+        val[0] - center[0],
+        val[1] - center[1]
+      ]);
+      const normal = [
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [0.0, -1.0],
+        [-1.0, 0.0]
+      ];
+      let abss = 0;
+      let cosx = 0;
+      let sinx = 0;
+      for (let i = 0; i < 4; i++) {
+        const delta = neswDelta[i];
+        const norm = normal[i];
+        const abs = Math.sqrt(Math.pow(delta[0], 2) + Math.pow(delta[1], 2));
+        abss += abs;
+        const outer = delta[0] * norm[1] - delta[1] * norm[0];
+        const inner = Math.acos(
+            (delta[0] * norm[0] + delta[1] * norm[1]) / abs
+        );
+        const theta = outer > 0.0 ? -1.0 * inner : inner;
+        cosx += Math.cos(theta);
+        sinx += Math.sin(theta);
+      }
+      const scale = abss / 4.0;
+      const omega = Math.atan2(sinx, cosx);
+
+      if (!size) size = this._map!.getSize()!;
+      const radius = Math.floor(Math.min(size[0], size[1]) / 4);
+      const zoom = Math.log((radius * MERC_MAX) / 128 / scale) / Math.log(2);
+
+      return [center, zoom, omega];
+    }
+
+    //_radius2Zoom
+    //
+    //_sysCoords2Xys
+    //_xys2Mercs
+    //_mercs2Xys
+    //_xys2SysCoords
+    //_viewPoint2Mercs
+    //_mercs2ViewPoint
   }
 
   return Mixin;
