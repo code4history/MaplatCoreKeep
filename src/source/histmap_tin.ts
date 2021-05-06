@@ -9,6 +9,7 @@ import { MERC_MAX } from "../const_ex";
 import { Coordinate } from "ol/coordinate";
 import { Feature, Polygon } from "@turf/turf";
 import { store2HistMap4Core } from "./store_handler";
+import {Size} from "ol/size";
 
 export class HistMap_tin extends HistMap {
   tins: Tin[];
@@ -242,56 +243,13 @@ export class HistMap_tin extends HistMap {
       });
   }
 
-  // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
   size2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number) {
-    const cross = this.size2Xys(center, zoom, rotate).map((xy, index) => {
-      if (index == 5) return xy;
-      return this.histMapCoords2Xy(xy);
-    });
-    const promise = this.xy2MercAsync_returnLayer(cross[0]);
-    return promise.then(results => {
-      const index = results[0];
-      const centerMerc = results[1];
-      const promises = cross.map((val, i) => {
-        if (i == 5) return val;
-        if (i == 0) return Promise.resolve(centerMerc);
-        return this.xy2MercAsync_specifyLayer(val, index);
-      });
-      return Promise.all(promises).catch(err => {
-        throw err;
-      });
-    });
-  }
+    return this._viewPoint2MercsAsync(center, zoom, rotate);
+  } // unifyTerm仮対応済
 
-  // メルカトル5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
   mercs2SizeAsync(mercs: Coordinate[], asMerc = false) {
-    let promises;
-    if (asMerc) {
-      promises = Promise.resolve(mercs);
-    } else {
-      promises = this.merc2XyAsync_returnLayer(mercs[0]).then(results => {
-        const result = results[0] || results[1];
-        const index = result![0];
-        const centerXy = result![1];
-        return Promise.all(
-          mercs.map((merc, i) => {
-            if (i == 5) return merc;
-            if (i == 0) return centerXy;
-            return this.merc2XyAsync_specifyLayer(merc, index);
-          })
-        );
-      });
-    }
-    return promises.then(xys => {
-      if (!asMerc) {
-        xys = xys.map((xy, i) => {
-          if (i == 5) return xy;
-          return this.xy2HistMapCoords(xy);
-        });
-      }
-      return this.xys2Size(xys);
-    });
-  }
+    return this._mercs2ViewPointAsync(mercs, asMerc);
+  } // unifyTerm仮対応済
 
   mercs2XysAsync(mercs: any) {
     const promises = this.merc2XyAsync_returnLayer(mercs[0]).then(results => {
@@ -336,10 +294,7 @@ export class HistMap_tin extends HistMap {
     return this._sysCoord2MercAsync(xy);
   } // unifyTerm仮対応済
 
-  merc2XyAsync(
-    merc: Coordinate,
-    ignoreBackside = false
-  ): Promise<Coordinate | undefined> {
+  merc2XyAsync(merc: Coordinate, ignoreBackside = false): Promise<Coordinate | undefined> {
     return this._merc2SysCoordAsync(merc, ignoreBackside);
   } // unifyTerm仮対応済
 
@@ -358,5 +313,51 @@ export class HistMap_tin extends HistMap {
 
   _xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
     return this.xy2MercAsync_returnLayer(xy).then(ret => ret[1]);
+  }
+
+  // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
+  _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]> {
+    const sysCoords = this._viewPoint2SysCoords(center, zoom, rotate, size);
+    const cross = this._sysCoords2Xys(sysCoords);
+
+    const promise = this.xy2MercAsync_returnLayer(cross[0]);
+    return promise.then(results => {
+      const index = results[0];
+      const centerMerc = results[1];
+      const promises = cross.map((val, i) => {
+        if (i === 5) return val;
+        if (i === 0) return Promise.resolve(centerMerc);
+        return this.xy2MercAsync_specifyLayer(val, index);
+      });
+      return Promise.all(promises).catch(err => {
+        throw err;
+      });
+    });
+  }
+
+  _mercs2ViewPointAsync(mercs: Coordinate[], asMerc = false): Promise<[Coordinate, number, number]> {
+    let promises;
+    if (asMerc) {
+      promises = Promise.resolve(mercs);
+    } else {
+      promises = this.merc2XyAsync_returnLayer(mercs[0]).then(results => {
+        const result = results[0] || results[1];
+        const index = result![0];
+        const centerXy = result![1];
+        return Promise.all(
+            mercs.map((merc, i) => {
+              if (i === 5) return merc;
+              if (i === 0) return centerXy;
+              return this.merc2XyAsync_specifyLayer(merc, index);
+            })
+        );
+      });
+    }
+    return promises.then(xys => {
+      if (!asMerc) {
+        xys = this._xys2SysCoords(xys);
+      }
+      return this._sysCoords2ViewPoint(xys);
+    });
   }
 }

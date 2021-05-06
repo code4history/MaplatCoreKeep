@@ -10,6 +10,7 @@ import {
   setupTileLoadFunction
 } from "./mixin";
 import { Coordinate } from "ol/coordinate";
+import {Size} from "ol/size";
 
 export class NowMap extends setCustomFunction(OSM) {
   constructor(options: any = {}) {
@@ -42,7 +43,7 @@ export class NowMap extends setCustomFunction(OSM) {
   } // unifyTerm仮対応済
 
   merc2XyAsync(merc: Coordinate): Promise<Coordinate | undefined> {
-    return this._merc2XyAsnyc(merc);
+    return this._merc2XyAsync(merc);
   } // unifyTerm仮対応済
 
   insideCheckXy(xy: Coordinate) {
@@ -73,7 +74,7 @@ export class NowMap extends setCustomFunction(OSM) {
   // unifyTerm対応
   // https://github.com/code4history/MaplatCore/issues/19
 
-  _merc2XyAsnyc(merc: Coordinate, ignoreBackside = false): Promise<Coordinate | undefined> {
+  _merc2XyAsync(merc: Coordinate): Promise<Coordinate | undefined> {
     return Promise.resolve(merc);
   }
 
@@ -87,5 +88,18 @@ export class NowMap extends setCustomFunction(OSM) {
 
   _sysCoord2Xy(sysCoord: Coordinate): Coordinate {
     return sysCoord;
+  }
+
+  _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size) {
+    const sysCoords = this._viewPoint2SysCoords(center, zoom, rotate, size);
+    const xys = this._sysCoords2Xys(sysCoords);
+    return this._xys2MercsAsync(xys);
+  }
+
+  _mercs2ViewPointAsync(mercs: Coordinate[]) {
+    return this._mercs2XysAsync(mercs).then(xys => {
+      const sysCoords = this._xys2SysCoords(xys as Coordinate[]);
+      return this._sysCoords2ViewPoint(sysCoords);
+    });
   }
 }

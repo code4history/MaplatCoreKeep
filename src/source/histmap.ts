@@ -90,13 +90,16 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
             const x = coord[1];
             const y = coord[2];
             if (
+              // @ts-expect-error ts-migrate(2683)
               x * tileSize * Math.pow(2, this.maxZoom - z) >= this.width ||
+              // @ts-expect-error ts-migrate(2683)
               y * tileSize * Math.pow(2, this.maxZoom - z) >= this.height ||
               x < 0 ||
               y < 0
             ) {
               return transPng;
             }
+            // @ts-expect-error ts-migrate(2683)
             return this._tileUrlFunction(coord);
           };
         return options;

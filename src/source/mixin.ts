@@ -459,12 +459,14 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     abstract _xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract _xy2SysCoord(xy: Coordinate): Coordinate;
     abstract _sysCoord2Xy(sysCoord: Coordinate): Coordinate;
+    abstract _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
+    abstract _mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
 
     _merc2SysCoordAsync(
         merc: Coordinate,
         ignoreBackside = false
     ): Promise<Coordinate | undefined> {
-      return this._merc2XyAsnyc(merc, ignoreBackside).then(xy => xy ? this._xy2SysCoord(xy) : xy);
+      return this._merc2XyAsync(merc, ignoreBackside).then(xy => xy ? this._xy2SysCoord(xy) : xy);
     }
 
     _sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate> {
@@ -540,14 +542,21 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       return [center, zoom, omega];
     }
 
-    //_radius2Zoom
-    //
-    //_sysCoords2Xys
-    //_xys2Mercs
-    //_mercs2Xys
-    //_xys2SysCoords
-    //_viewPoint2Mercs
-    //_mercs2ViewPoint
+    _sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[] {
+      return sysCoords.map((sysCoord, index) => index === 5 ? sysCoord : this._sysCoord2Xy(sysCoord));
+    }
+
+    _xys2SysCoords(xys: Coordinate[]): Coordinate[] {
+      return xys.map((xy, index) => index === 5 ? xy : this._xy2SysCoord(xy));
+    }
+
+    _mercs2XysAsync(mercs: Coordinate[]): Promise<(undefined | Coordinate)[]> {
+      return Promise.all(mercs.map((merc, index) => index === 5 ? Promise.resolve(merc) : this._merc2XyAsync(merc)));
+    }
+
+    _xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]> {
+      return Promise.all(xys.map((xy, index) => index === 5 ? Promise.resolve(xy) : this._xy2MercAsync(xy)));
+    }
   }
 
   return Mixin;
