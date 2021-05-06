@@ -38,10 +38,8 @@ export class NowMap extends setCustomFunction(OSM) {
   }
 
   xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
-    return new Promise((resolve, _reject) => {
-      resolve(xy);
-    });
-  }
+    return this._xy2MercAsync(xy);
+  } // unifyTerm仮対応済
 
   merc2XyAsync(merc: Coordinate): Promise<Coordinate | undefined> {
     return this._merc2XyAsnyc(merc);

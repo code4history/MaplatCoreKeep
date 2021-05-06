@@ -455,7 +455,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     // unifyTerm対応
     // https://github.com/code4history/MaplatCore/issues/19
 
-    abstract _merc2XyAsnyc(merc: Coordinate, ignoreBackside?: boolean): Promise<Coordinate | undefined>;
+    abstract _merc2XyAsync(merc: Coordinate, ignoreBackside?: boolean): Promise<Coordinate | undefined>;
     abstract _xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract _xy2SysCoord(xy: Coordinate): Coordinate;
     abstract _sysCoord2Xy(sysCoord: Coordinate): Coordinate;

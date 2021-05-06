@@ -47,6 +47,22 @@ for (let z = 0; z < 9; z++) {
   })(key, maxxy);
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+/*type Constructor<T = {}> = new (...args: any[]) => T;
+
+export function setCustomFunctionForHistmap<TBase extends Constructor>(Base: TBase) {
+  abstract class HistMapMixin extends setCustomFunction(Base) {
+
+  }
+  return HistMapMixin;
+}
+
+export function setCustomInitializeForHistmap(self: any, options: any) {
+
+  setCustomInitialize(this, options);
+  setupTileLoadFunction(this);
+}*/
+
 export abstract class HistMap extends setCustomFunction(XYZ) {
   width: number;
   height: number;
@@ -69,7 +85,7 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
 
         options.tileUrlFunction =
           options.tileUrlFunction ||
-          function (coord: any) {
+          function (this: HistMap, coord: any) {
             const z = coord[0];
             const x = coord[1];
             const y = coord[2];

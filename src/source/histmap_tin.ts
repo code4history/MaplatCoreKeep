@@ -358,7 +358,5 @@ export class HistMap_tin extends HistMap {
 
   _xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
     return this.xy2MercAsync_returnLayer(xy).then(ret => ret[1]);
-    //const convertXy = this.histMapCoords2Xy(xy);
-    //return this.xy2MercAsync_returnLayer(convertXy).then(ret => ret[1]);
   }
 }
