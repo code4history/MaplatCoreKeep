@@ -17,8 +17,6 @@ declare const HistMap_base: {
         minZoom?: number | undefined;
         envelope?: import("@turf/helpers").Feature<import("@turf/helpers").Polygon, import("@turf/helpers").Properties> | undefined;
         centroid?: number[] | undefined;
-        xy2MercAsync(val: Coordinate): Promise<Coordinate>;
-        merc2XyAsync(merc: Coordinate, ignoreBackside?: boolean | undefined): Promise<Coordinate | undefined>;
         insideCheckHistMapCoords(coord: Coordinate): boolean;
         getCacheEnable(): boolean;
         getTileCacheStatsAsync(): Promise<{
@@ -55,17 +53,10 @@ declare const HistMap_base: {
         goHome(): void;
         setGPSMarkerAsync(position: any, ignoreMove?: boolean): Promise<unknown>;
         setGPSMarker(position: any, ignoreMove?: boolean): void;
-        getRadius(size: import("ol/size").Size, zoom?: number | undefined): number;
         mercsFromGivenMercZoom(center: Coordinate, mercZoom?: number | undefined, direction?: number | undefined): Coordinate[];
         mercsFromGPSValue(lnglat: Coordinate, acc: number): number[][];
         rotateMatrix(xys: number[][], theta?: number | undefined): Coordinate[];
-        size2Xys(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined): number[][];
-        size2MercsAsync(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined): Promise<Coordinate[]>;
-        mercs2SizeAsync(mercs: Coordinate[], asMerc?: boolean): Promise<[Coordinate, number, number]>;
-        mercs2MercSizeAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
-        xys2Size(xys: Coordinate[]): [Coordinate, number, number];
         mercs2MercRotation(xys: Coordinate[]): number;
-        mercs2XysAsync(mercs: Coordinate[]): Promise<(Coordinate | undefined)[][]>;
         resolvePois(pois?: any): Promise<void>;
         getPoi(id: string): undefined;
         addPoi(data: any, clusterId?: string | undefined): any;
@@ -75,6 +66,26 @@ declare const HistMap_base: {
         getPoiLayer(id: string): any;
         addPoiLayer(id: string, data: any): void;
         removePoiLayer(id: string): void;
+        merc2XyAsync(merc: Coordinate): Promise<Coordinate>;
+        merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<void | Coordinate>;
+        xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
+        xy2SysCoord(xy: Coordinate): Coordinate;
+        sysCoord2Xy(sysCoord: Coordinate): Coordinate;
+        viewPoint2MercsAsync(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: import("ol/size").Size | undefined): Promise<Coordinate[]>;
+        mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
+        mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
+        merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<void | Coordinate>;
+        merc2SysCoordAsync(merc: Coordinate): Promise<Coordinate>;
+        sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate>;
+        zoom2Radius(size: import("ol/size").Size, zoom?: number | undefined): number;
+        viewPoint2SysCoords(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: import("ol/size").Size | undefined): Coordinate[];
+        mercViewPoint2Mercs(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: import("ol/size").Size | undefined): Coordinate[];
+        sysCoords2ViewPoint(sysCoords: Coordinate[]): [Coordinate, number, number];
+        mercs2MercViewPoint(mercs: Coordinate[]): [Coordinate, number, number];
+        sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[];
+        xys2SysCoords(xys: Coordinate[]): Coordinate[];
+        mercs2XysAsync(mercs: Coordinate[]): Promise<Coordinate[]>;
+        xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]>;
     };
 } & typeof XYZ;
 export declare abstract class HistMap extends HistMap_base {
@@ -82,11 +93,11 @@ export declare abstract class HistMap extends HistMap_base {
     height: number;
     _maxxy: number;
     constructor(options?: any);
-    histMapCoords2Xy(histCoords: Coordinate): Coordinate;
-    xy2HistMapCoords(xy: Coordinate): Coordinate;
     insideCheckXy(xy: Coordinate): boolean;
     insideCheckHistMapCoords(histCoords: Coordinate): boolean;
     modulateXyInside(xy: any): number[];
     modulateHistMapCoordsInside(histCoords: any): Coordinate;
+    xy2SysCoord(xy: Coordinate): Coordinate;
+    sysCoord2Xy(sysCoord: Coordinate): Coordinate;
 }
 export {};

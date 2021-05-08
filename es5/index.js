@@ -423,7 +423,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 else {
                     var xy = evt.coordinate;
                     _this.dispatchEvent(new customevent_1.default("clickMapXy", xy));
-                    _this.from.xy2MercAsync(xy).then(function (merc) {
+                    _this.from.sysCoord2MercAsync(xy).then(function (merc) {
                         _this.dispatchEvent(new customevent_1.default("clickMapMerc", merc));
                         var lnglat = proj_1.transform(merc, "EPSG:3857", "EPSG:4326");
                         _this.dispatchEvent(new customevent_1.default("clickMap", {
@@ -442,7 +442,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             var pointerCounter = {};
             var pointermoveHandler = function (xy) {
                 _this.dispatchEvent(new customevent_1.default("pointerMoveOnMapXy", xy));
-                _this.from.xy2MercAsync(xy).then(function (merc) {
+                _this.from.sysCoord2MercAsync(xy).then(function (merc) {
                     _this.dispatchEvent(new customevent_1.default("pointerMoveOnMapMerc", merc));
                     if (xyBuffer) {
                         var next = xyBuffer;
@@ -591,8 +591,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 var zoom = view.getDecimalZoom();
                 var rotation = functions_1.normalizeDegree((view.getRotation() * 180) / Math.PI);
                 _this.from
-                    .size2MercsAsync()
-                    .then(function (mercs) { return _this.mercSrc.mercs2SizeAsync(mercs); })
+                    .viewPoint2MercsAsync()
+                    .then(function (mercs) { return _this.mercSrc.mercs2ViewPointAsync(mercs); })
                     .then(function (size) {
                     if (_this.mobileMapMoveBuffer &&
                         _this.mobileMapMoveBuffer[0][0] == size[0][0] &&
@@ -653,15 +653,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     : defaultpin_png_1.default;
             var promise = coords
                 ? (function () {
-                    return src.merc2XyAsync(coords, true);
+                    return src.merc2SysCoordAsync_ignoreBackground(coords);
                 })()
                 : x && y
                     ? new Promise(function (resolve) {
-                        resolve(src.xy2HistMapCoords([x, y]));
+                        resolve(src.xy2SysCoord([x, y]));
                     })
                     : (function () {
                         var merc = proj_1.transform(lnglat, "EPSG:4326", "EPSG:3857");
-                        return src.merc2XyAsync(merc, true);
+                        return src.merc2SysCoordAsync_ignoreBackground(merc);
                     })();
             return promise.then(function (xy) {
                 if (!xy)
@@ -696,7 +696,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     else {
                         if (isLnglat)
                             coord = proj_1.transform(coord, "EPSG:4326", "EPSG:3857");
-                        return _this.from.merc2XyAsync(coord);
+                        return _this.from.merc2SysCoordAsync(coord);
                     }
                 }));
             };
@@ -1397,7 +1397,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         MaplatApp.prototype.convertParametersFromCurrent = function (to, callback) {
             var _this = this;
             var view = this.mapObject.getView();
-            var fromPromise = this.from.size2MercsAsync();
+            var fromPromise = this.from.viewPoint2MercsAsync();
             var current = math_ex_1.recursiveRound([view.getCenter(), view.getZoom(), view.getRotation()], 10);
             if (this.mercBuffer &&
                 this.mercBuffer.mercs &&

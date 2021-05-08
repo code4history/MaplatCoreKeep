@@ -124,15 +124,15 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       if (cond.x !== undefined && cond.y != undefined) {
         xy = [cond.x, cond.y];
       }
-      this.size2MercsAsync()
-        .then(mercs => this.mercs2MercSizeAsync(mercs))
-        .then(mercSize => {
+      this.viewPoint2MercsAsync()
+        .then(mercs => this.mercs2MercViewPoint(mercs))
+        .then(mercViewPoint => {
           const mercs = this.mercsFromGivenMercZoom(
-            merc || mercSize[0],
-            mercZoom || mercSize[1],
-            direction != null ? direction : mercSize[2]
+            merc || mercViewPoint[0],
+            mercZoom || mercViewPoint[1],
+            direction != null ? direction : mercViewPoint[2]
           );
-          this.mercs2SizeAsync(mercs).then(size => {
+          this.mercs2ViewPointAsync(mercs).then(size => {
             if (merc != null) {
               view?.setCenter(size[0]);
             } else if (xy != null) {
@@ -182,10 +182,10 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       }
       const mercs = this.mercsFromGPSValue(position.lnglat, position.acc);
 
-      return this.mercs2XysAsync(mercs)
+      return this.mercs2SysCoordsAsync_multiLayer(mercs)
         .then(results => {
           const hide = !results[0];
-          const xys = hide ? results[1] : results[0];
+          const xys = hide ? results[1]! : results[0]!;
           const sub = !hide ? results[1] : null;
           const pos: any = { xy: xys[0] };
           if (!this.insideCheckHistMapCoords(xys[0]!)) {
@@ -219,11 +219,6 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       this.setGPSMarkerAsync(position, ignoreMove).then(() => {});
     }
-
-    // size(画面サイズ)とズームから、地図面座標上での半径を得る。zoom無指定の場合は自動取得
-    getRadius(size: Size, zoom?: number) {
-      return this._zoom2Radius(size, zoom);
-    } // unifyTerm仮対応済
 
     // メルカトルの中心座標とメルカトルズームから、メルカトル5座標値に変換
     mercsFromGivenMercZoom(
@@ -270,15 +265,8 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       return result;
     }
 
-    // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-    size2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number) {
-      const sysCoords = this.viewPoint2SysCoords(center, zoom, rotate);
-      const xys = this._sysCoords2Xys(sysCoords);
-      return this._xys2MercsAsync(xys);
-    }
-
     // メルカトル5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
-    mercs2SizeAsync(mercs: Coordinate[], asMerc = false) {
+    /*mercs2SizeAsync(mercs: Coordinate[], asMerc = false) {
       const promises = asMerc
         ? Promise.resolve(mercs)
         : Promise.all(
@@ -288,12 +276,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
             })
           );
       return promises.then(sysCoords => this.sysCoords2ViewPoint(sysCoords as Coordinate[]));
-    }
-
-    // メルカトル5地点情報からメルカトル地図でのサイズ情報（中心座標、サイズ、回転）を得る
-    mercs2MercSizeAsync(mercs: Coordinate[]) {
-      return this.mercs2SizeAsync(mercs, true);
-    }
+    }*/
 
     mercs2MercRotation(xys: Coordinate[]) {
       const center = xys[0];
@@ -326,15 +309,6 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       }
       // var scale = abss / 4.0;
       return Math.atan2(sinx, cosx);
-    }
-
-    mercs2XysAsync(mercs: Coordinate[]) {
-      return Promise.all(
-        mercs.map((merc, index) => {
-          if (index === 5) return merc;
-          return this.merc2SysCoordAsync(merc);
-        })
-      ).then(xys => [xys]);
     }
 
     async resolvePois(pois?: any) {
@@ -442,8 +416,9 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     abstract xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract xy2SysCoord(xy: Coordinate): Coordinate;
     abstract sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-    abstract _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
-    abstract _mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
+    abstract viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
+    abstract mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
+    abstract mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
 
     merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
       return this.merc2XyAsync_ignoreBackground(merc).then(xy => xy ? this.xy2SysCoord(xy) : undefined);
@@ -459,7 +434,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // size(画面サイズ)とズームから、地図面座標上での半径を得る。zoom無指定の場合は自動取得
-    _zoom2Radius(size: Size, zoom?: number) {
+    zoom2Radius(size: Size, zoom?: number) {
       const radius = Math.floor(Math.min(size[0], size[1]) / 4);
       if (zoom === undefined) {
         zoom = this._map?.getView().getDecimalZoom();
@@ -468,14 +443,18 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-    viewPoint2SysCoords(center?: Coordinate, zoom?: number, rotate?: number, size?: Size) {
+    viewPoint2SysCoords(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
+      return this.mercViewPoint2Mercs(center, zoom, rotate, size);
+    }
+
+    mercViewPoint2Mercs(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
       if (center === undefined) {
         center = this._map!.getView().getCenter();
       }
       if (size === undefined) {
         size = this._map!.getSize()!;
       }
-      const radius = this.getRadius(size, zoom);
+      const radius = this.zoom2Radius(size, zoom);
       const crossDelta = this.rotateMatrix(MERC_CROSSMATRIX, rotate);
       const cross = crossDelta.map(xy => [
         xy[0] * radius + center![0],
@@ -486,10 +465,15 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 地図座標5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
-    sysCoords2ViewPoint(xys: Coordinate[]): [Coordinate, number, number] {
-      const center = xys[0];
-      let size = xys[5];
-      const nesw = xys.slice(1, 5);
+    sysCoords2ViewPoint(sysCoords: Coordinate[]): [Coordinate, number, number] {
+      return this.mercs2MercViewPoint(sysCoords);
+    }
+
+    // メルカトル5地点情報からメルカトル地図でのサイズ情報（中心座標、サイズ、回転）を得る
+    mercs2MercViewPoint(mercs: Coordinate[]): [Coordinate, number, number] {
+      const center = mercs[0];
+      let size = mercs[5];
+      const nesw = mercs.slice(1, 5);
       const neswDelta = nesw.map(val => [
         val[0] - center[0],
         val[1] - center[1]
@@ -526,19 +510,19 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       return [center, zoom, omega];
     }
 
-    _sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[] {
+    sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[] {
       return sysCoords.map((sysCoord, index) => index === 5 ? sysCoord : this.sysCoord2Xy(sysCoord));
     }
 
-    _xys2SysCoords(xys: Coordinate[]): Coordinate[] {
+    xys2SysCoords(xys: Coordinate[]): Coordinate[] {
       return xys.map((xy, index) => index === 5 ? xy : this.xy2SysCoord(xy));
     }
 
-    _mercs2XysAsync(mercs: Coordinate[]): Promise<(Coordinate)[]> {
+    mercs2XysAsync(mercs: Coordinate[]): Promise<(Coordinate)[]> {
       return Promise.all(mercs.map((merc, index) => index === 5 ? Promise.resolve(merc) : this.merc2XyAsync(merc)));
     }
 
-    _xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]> {
+    xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]> {
       return Promise.all(xys.map((xy, index) => index === 5 ? Promise.resolve(xy) : this.xy2MercAsync(xy)));
     }
   }

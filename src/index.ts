@@ -622,8 +622,8 @@ export class MaplatApp extends EventTarget {
       const zoom = view.getDecimalZoom();
       const rotation = normalizeDegree((view.getRotation() * 180) / Math.PI);
       (this.from as HistMap | NowMap)
-        .size2MercsAsync()
-        .then((mercs: any) => (this.mercSrc as NowMap).mercs2SizeAsync(mercs))
+        .viewPoint2MercsAsync()
+        .then((mercs: any) => (this.mercSrc as NowMap).mercs2ViewPointAsync(mercs))
         .then((size: any) => {
           if (
             this.mobileMapMoveBuffer &&
@@ -1354,7 +1354,7 @@ export class MaplatApp extends EventTarget {
   }
   convertParametersFromCurrent(to: any, callback: any) {
     const view = this.mapObject.getView();
-    let fromPromise = (this.from as HistMap | NowMap).size2MercsAsync();
+    let fromPromise = (this.from as HistMap | NowMap).viewPoint2MercsAsync();
     const current = recursiveRound(
       [view.getCenter(), view.getZoom(), view.getRotation()],
       10
@@ -1405,7 +1405,7 @@ export class MaplatApp extends EventTarget {
         this.mercBuffer.mercs = mercs;
         // @ts-expect-error ts-migrate(7053)
         this.logger.debug(`Mercs: ${mercs}`);
-        let toPromise = to.mercs2SizeAsync(mercs);
+        let toPromise = to.mercs2ViewPointAsync(mercs);
         const key = to.mapID;
         if (this.mercBuffer.buffer[key]) {
           // @ts-expect-error ts-migrate(7053)

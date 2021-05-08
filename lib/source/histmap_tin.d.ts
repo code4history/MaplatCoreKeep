@@ -1,6 +1,7 @@
 import { HistMap } from "./histmap";
 import Tin from "@maplat/tin";
 import { Coordinate } from "ol/coordinate";
+import { Size } from "ol/size";
 export declare class HistMap_tin extends HistMap {
     tins: Tin[];
     constructor(options?: any);
@@ -10,9 +11,11 @@ export declare class HistMap_tin extends HistMap {
     xy2MercAsync_returnLayer(xy: Coordinate): Promise<[number, Coordinate]>;
     merc2XyAsync_returnLayer(merc: Coordinate): Promise<([number, Coordinate] | undefined)[]>;
     mapSize2MercSize(callback: any): void;
-    size2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number): Promise<number[][]>;
-    mercs2SizeAsync(mercs: Coordinate[], asMerc?: boolean): Promise<[Coordinate, number, number]>;
-    mercs2XysAsync(mercs: any): Promise<any[]>;
+    mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
+    merc2XyAsync_base(merc: Coordinate, ignoreBackground: boolean): Promise<Coordinate | void>;
+    merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void>;
+    merc2XyAsync(merc: Coordinate): Promise<Coordinate>;
     xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
-    merc2XyAsync(merc: Coordinate, ignoreBackside?: boolean): Promise<Coordinate | undefined>;
+    viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
+    mercs2ViewPointAsync(mercs: Coordinate[], asMerc?: boolean): Promise<[Coordinate, number, number]>;
 }

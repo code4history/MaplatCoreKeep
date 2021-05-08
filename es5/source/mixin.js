@@ -219,11 +219,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 if (cond.x !== undefined && cond.y != undefined) {
                     xy = [cond.x, cond.y];
                 }
-                this.size2MercsAsync()
-                    .then(function (mercs) { return _this.mercs2MercSizeAsync(mercs); })
-                    .then(function (mercSize) {
-                    var mercs = _this.mercsFromGivenMercZoom(merc || mercSize[0], mercZoom || mercSize[1], direction != null ? direction : mercSize[2]);
-                    _this.mercs2SizeAsync(mercs).then(function (size) {
+                this.viewPoint2MercsAsync()
+                    .then(function (mercs) { return _this.mercs2MercViewPoint(mercs); })
+                    .then(function (mercViewPoint) {
+                    var mercs = _this.mercsFromGivenMercZoom(merc || mercViewPoint[0], mercZoom || mercViewPoint[1], direction != null ? direction : mercViewPoint[2]);
+                    _this.mercs2ViewPointAsync(mercs).then(function (size) {
                         if (merc != null) {
                             view === null || view === void 0 ? void 0 : view.setCenter(size[0]);
                         }
@@ -274,7 +274,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     });
                 }
                 var mercs = this.mercsFromGPSValue(position.lnglat, position.acc);
-                return this.mercs2XysAsync(mercs)
+                return this.mercs2SysCoordsAsync_multiLayer(mercs)
                     .then(function (results) {
                     var hide = !results[0];
                     var xys = hide ? results[1] : results[0];
@@ -306,14 +306,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             Mixin.prototype.setGPSMarker = function (position, ignoreMove) {
                 if (ignoreMove === void 0) { ignoreMove = false; }
                 this.setGPSMarkerAsync(position, ignoreMove).then(function () { });
-            };
-            Mixin.prototype.getRadius = function (size, zoom) {
-                var _a;
-                var radius = Math.floor(Math.min(size[0], size[1]) / 4);
-                if (zoom === undefined) {
-                    zoom = (_a = this._map) === null || _a === void 0 ? void 0 : _a.getView().getDecimalZoom();
-                }
-                return (radius * const_ex_1.MERC_MAX) / 128 / Math.pow(2, zoom);
             };
             Mixin.prototype.mercsFromGivenMercZoom = function (center, mercZoom, direction) {
                 if (mercZoom === undefined) {
@@ -350,81 +342,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 }
                 return result;
             };
-            Mixin.prototype.size2Xys = function (center, zoom, rotate) {
-                if (center === undefined) {
-                    center = this._map.getView().getCenter();
-                }
-                var size = this._map.getSize();
-                var radius = this.getRadius(size, zoom);
-                var crossDelta = this.rotateMatrix(const_ex_1.MERC_CROSSMATRIX, rotate);
-                var cross = crossDelta.map(function (xy) { return [
-                    xy[0] * radius + center[0],
-                    xy[1] * radius + center[1]
-                ]; });
-                cross.push(size);
-                return cross;
-            };
-            Mixin.prototype.size2MercsAsync = function (center, zoom, rotate) {
-                var _this = this;
-                var cross = this.size2Xys(center, zoom, rotate);
-                var promises = cross.map(function (val, index) {
-                    if (index === 5)
-                        return Promise.resolve(val);
-                    return _this.xy2MercAsync(val);
-                });
-                return Promise.all(promises);
-            };
-            Mixin.prototype.mercs2SizeAsync = function (mercs, asMerc) {
-                var _this = this;
-                if (asMerc === void 0) { asMerc = false; }
-                var promises = asMerc
-                    ? Promise.resolve(mercs)
-                    : Promise.all(mercs.map(function (merc, index) {
-                        if (index === 5)
-                            return merc;
-                        return _this.merc2XyAsync(merc).then(function (val) { return val; });
-                    }));
-                return promises.then(function (xys) { return _this.xys2Size(xys); });
-            };
-            Mixin.prototype.mercs2MercSizeAsync = function (mercs) {
-                return this.mercs2SizeAsync(mercs, true);
-            };
-            Mixin.prototype.xys2Size = function (xys) {
-                var center = xys[0];
-                var size = xys[5];
-                var nesw = xys.slice(1, 5);
-                var neswDelta = nesw.map(function (val) { return [
-                    val[0] - center[0],
-                    val[1] - center[1]
-                ]; });
-                var normal = [
-                    [0.0, 1.0],
-                    [1.0, 0.0],
-                    [0.0, -1.0],
-                    [-1.0, 0.0]
-                ];
-                var abss = 0;
-                var cosx = 0;
-                var sinx = 0;
-                for (var i = 0; i < 4; i++) {
-                    var delta = neswDelta[i];
-                    var norm = normal[i];
-                    var abs = Math.sqrt(Math.pow(delta[0], 2) + Math.pow(delta[1], 2));
-                    abss += abs;
-                    var outer = delta[0] * norm[1] - delta[1] * norm[0];
-                    var inner = Math.acos((delta[0] * norm[0] + delta[1] * norm[1]) / abs);
-                    var theta = outer > 0.0 ? -1.0 * inner : inner;
-                    cosx += Math.cos(theta);
-                    sinx += Math.sin(theta);
-                }
-                var scale = abss / 4.0;
-                var omega = Math.atan2(sinx, cosx);
-                if (!size)
-                    size = this._map.getSize();
-                var radius = Math.floor(Math.min(size[0], size[1]) / 4);
-                var zoom = Math.log((radius * const_ex_1.MERC_MAX) / 128 / scale) / Math.log(2);
-                return [center, zoom, omega];
-            };
             Mixin.prototype.mercs2MercRotation = function (xys) {
                 var center = xys[0];
                 var nesw = xys.slice(1, 5);
@@ -451,14 +368,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     sinx += Math.sin(theta);
                 }
                 return Math.atan2(sinx, cosx);
-            };
-            Mixin.prototype.mercs2XysAsync = function (mercs) {
-                var _this = this;
-                return Promise.all(mercs.map(function (merc, index) {
-                    if (index === 5)
-                        return merc;
-                    return _this.merc2XyAsync(merc);
-                })).then(function (xys) { return [xys]; });
             };
             Mixin.prototype.resolvePois = function (pois) {
                 return __awaiter(this, void 0, void 0, function () {
@@ -575,6 +484,100 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 if (!this.pois[id])
                     return;
                 delete this.pois[id];
+            };
+            Mixin.prototype.merc2SysCoordAsync_ignoreBackground = function (merc) {
+                var _this = this;
+                return this.merc2XyAsync_ignoreBackground(merc).then(function (xy) { return xy ? _this.xy2SysCoord(xy) : undefined; });
+            };
+            Mixin.prototype.merc2SysCoordAsync = function (merc) {
+                var _this = this;
+                return this.merc2XyAsync(merc).then(function (xy) { return xy ? _this.xy2SysCoord(xy) : xy; });
+            };
+            Mixin.prototype.sysCoord2MercAsync = function (sysCoord) {
+                var xy = this.sysCoord2Xy(sysCoord);
+                return this.xy2MercAsync(xy);
+            };
+            Mixin.prototype.zoom2Radius = function (size, zoom) {
+                var _a;
+                var radius = Math.floor(Math.min(size[0], size[1]) / 4);
+                if (zoom === undefined) {
+                    zoom = (_a = this._map) === null || _a === void 0 ? void 0 : _a.getView().getDecimalZoom();
+                }
+                return (radius * const_ex_1.MERC_MAX) / 128 / Math.pow(2, zoom);
+            };
+            Mixin.prototype.viewPoint2SysCoords = function (center, zoom, rotate, size) {
+                return this.mercViewPoint2Mercs(center, zoom, rotate, size);
+            };
+            Mixin.prototype.mercViewPoint2Mercs = function (center, zoom, rotate, size) {
+                if (center === undefined) {
+                    center = this._map.getView().getCenter();
+                }
+                if (size === undefined) {
+                    size = this._map.getSize();
+                }
+                var radius = this.zoom2Radius(size, zoom);
+                var crossDelta = this.rotateMatrix(const_ex_1.MERC_CROSSMATRIX, rotate);
+                var cross = crossDelta.map(function (xy) { return [
+                    xy[0] * radius + center[0],
+                    xy[1] * radius + center[1]
+                ]; });
+                cross.push(size);
+                return cross;
+            };
+            Mixin.prototype.sysCoords2ViewPoint = function (sysCoords) {
+                return this.mercs2MercViewPoint(sysCoords);
+            };
+            Mixin.prototype.mercs2MercViewPoint = function (mercs) {
+                var center = mercs[0];
+                var size = mercs[5];
+                var nesw = mercs.slice(1, 5);
+                var neswDelta = nesw.map(function (val) { return [
+                    val[0] - center[0],
+                    val[1] - center[1]
+                ]; });
+                var normal = [
+                    [0.0, 1.0],
+                    [1.0, 0.0],
+                    [0.0, -1.0],
+                    [-1.0, 0.0]
+                ];
+                var abss = 0;
+                var cosx = 0;
+                var sinx = 0;
+                for (var i = 0; i < 4; i++) {
+                    var delta = neswDelta[i];
+                    var norm = normal[i];
+                    var abs = Math.sqrt(Math.pow(delta[0], 2) + Math.pow(delta[1], 2));
+                    abss += abs;
+                    var outer = delta[0] * norm[1] - delta[1] * norm[0];
+                    var inner = Math.acos((delta[0] * norm[0] + delta[1] * norm[1]) / abs);
+                    var theta = outer > 0.0 ? -1.0 * inner : inner;
+                    cosx += Math.cos(theta);
+                    sinx += Math.sin(theta);
+                }
+                var scale = abss / 4.0;
+                var omega = Math.atan2(sinx, cosx);
+                if (!size)
+                    size = this._map.getSize();
+                var radius = Math.floor(Math.min(size[0], size[1]) / 4);
+                var zoom = Math.log((radius * const_ex_1.MERC_MAX) / 128 / scale) / Math.log(2);
+                return [center, zoom, omega];
+            };
+            Mixin.prototype.sysCoords2Xys = function (sysCoords) {
+                var _this = this;
+                return sysCoords.map(function (sysCoord, index) { return index === 5 ? sysCoord : _this.sysCoord2Xy(sysCoord); });
+            };
+            Mixin.prototype.xys2SysCoords = function (xys) {
+                var _this = this;
+                return xys.map(function (xy, index) { return index === 5 ? xy : _this.xy2SysCoord(xy); });
+            };
+            Mixin.prototype.mercs2XysAsync = function (mercs) {
+                var _this = this;
+                return Promise.all(mercs.map(function (merc, index) { return index === 5 ? Promise.resolve(merc) : _this.merc2XyAsync(merc); }));
+            };
+            Mixin.prototype.xys2MercsAsync = function (xys) {
+                var _this = this;
+                return Promise.all(xys.map(function (xy, index) { return index === 5 ? Promise.resolve(xy) : _this.xy2MercAsync(xy); }));
             };
             return Mixin;
         }(Base));

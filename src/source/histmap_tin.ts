@@ -243,30 +243,22 @@ export class HistMap_tin extends HistMap {
       });
   }
 
-  size2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number) {
-    return this._viewPoint2MercsAsync(center, zoom, rotate);
-  } // unifyTerm仮対応済
-
-  mercs2SizeAsync(mercs: Coordinate[], asMerc = false) {
-    return this._mercs2ViewPointAsync(mercs, asMerc);
-  } // unifyTerm仮対応済
-
-  mercs2XysAsync(mercs: any) {
+  mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]> {
     const promises = this.merc2XyAsync_returnLayer(mercs[0]).then(results => {
       let hide = false;
       return Promise.all(
-        results.map((result: any, i: any) => {
+        results.map((result, i) => {
           if (!result) {
             hide = true;
             return;
           }
           const index = result[0];
           const centerXy = result[1];
-          if (i != 0 && !hide) return Promise.resolve([centerXy]);
+          if (i !== 0 && !hide) return Promise.resolve([centerXy]);
           return Promise.all(
-            mercs.map((merc: any, j: any) => {
-              if (j == 5) return merc;
-              if (j == 0) return Promise.resolve(centerXy);
+            mercs.map((merc, j) => {
+              if (j === 5) return Promise.resolve(merc);
+              if (j === 0) return Promise.resolve(centerXy);
               return this.merc2XyAsync_specifyLayer(merc, index);
             })
           );
@@ -275,19 +267,16 @@ export class HistMap_tin extends HistMap {
     });
     return promises
       .then(results =>
-        results.map((result: any) => {
+        results.map(result => {
           if (!result) {
             return;
           }
-          return result.map((xy: any, i: any) => {
+          return result.map((xy, i) => {
             if (i == 5) return xy;
             return this.xy2SysCoord(xy);
           });
         })
-      )
-      .catch(err => {
-        throw err;
-      });
+      );
   }
 
   // unifyTerm対応
@@ -315,9 +304,9 @@ export class HistMap_tin extends HistMap {
   }
 
   // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-  _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]> {
+  viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]> {
     const sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
-    const cross = this._sysCoords2Xys(sysCoords);
+    const cross = this.sysCoords2Xys(sysCoords);
 
     const promise = this.xy2MercAsync_returnLayer(cross[0]);
     return promise.then(results => {
@@ -334,7 +323,7 @@ export class HistMap_tin extends HistMap {
     });
   }
 
-  _mercs2ViewPointAsync(mercs: Coordinate[], asMerc = false): Promise<[Coordinate, number, number]> {
+  mercs2ViewPointAsync(mercs: Coordinate[], asMerc = false): Promise<[Coordinate, number, number]> {
     let promises;
     if (asMerc) {
       promises = Promise.resolve(mercs);
@@ -354,7 +343,7 @@ export class HistMap_tin extends HistMap {
     }
     return promises.then(xys => {
       if (!asMerc) {
-        xys = this._xys2SysCoords(xys);
+        xys = this.xys2SysCoords(xys);
       }
       return this.sysCoords2ViewPoint(xys);
     });

@@ -98,16 +98,6 @@ var __extends = (this && this.__extends) || (function () {
             mixin_1.setupTileLoadFunction(_this);
             return _this;
         }
-        HistMap.prototype.histMapCoords2Xy = function (histCoords) {
-            var x = ((histCoords[0] + const_ex_1.MERC_MAX) * this._maxxy) / (2 * const_ex_1.MERC_MAX);
-            var y = ((-histCoords[1] + const_ex_1.MERC_MAX) * this._maxxy) / (2 * const_ex_1.MERC_MAX);
-            return [x, y];
-        };
-        HistMap.prototype.xy2HistMapCoords = function (xy) {
-            var histX = (xy[0] * (2 * const_ex_1.MERC_MAX)) / this._maxxy - const_ex_1.MERC_MAX;
-            var histY = -1 * ((xy[1] * (2 * const_ex_1.MERC_MAX)) / this._maxxy - const_ex_1.MERC_MAX);
-            return [histX, histY];
-        };
         HistMap.prototype.insideCheckXy = function (xy) {
             return !(xy[0] < 0 ||
                 xy[0] > this.width ||
@@ -115,7 +105,7 @@ var __extends = (this && this.__extends) || (function () {
                 xy[1] > this.height);
         };
         HistMap.prototype.insideCheckHistMapCoords = function (histCoords) {
-            return this.insideCheckXy(this.histMapCoords2Xy(histCoords));
+            return this.insideCheckXy(this.sysCoord2Xy(histCoords));
         };
         HistMap.prototype.modulateXyInside = function (xy) {
             var dx = xy[0] / (this.width / 2) - 1;
@@ -127,9 +117,19 @@ var __extends = (this && this.__extends) || (function () {
             ];
         };
         HistMap.prototype.modulateHistMapCoordsInside = function (histCoords) {
-            var xy = this.histMapCoords2Xy(histCoords);
+            var xy = this.sysCoord2Xy(histCoords);
             var ret = this.modulateXyInside(xy);
-            return this.xy2HistMapCoords(ret);
+            return this.xy2SysCoord(ret);
+        };
+        HistMap.prototype.xy2SysCoord = function (xy) {
+            var sysCoordX = (xy[0] * (2 * const_ex_1.MERC_MAX)) / this._maxxy - const_ex_1.MERC_MAX;
+            var sysCoordY = -1 * ((xy[1] * (2 * const_ex_1.MERC_MAX)) / this._maxxy - const_ex_1.MERC_MAX);
+            return [sysCoordX, sysCoordY];
+        };
+        HistMap.prototype.sysCoord2Xy = function (sysCoord) {
+            var x = ((sysCoord[0] + const_ex_1.MERC_MAX) * this._maxxy) / (2 * const_ex_1.MERC_MAX);
+            var y = ((-sysCoord[1] + const_ex_1.MERC_MAX) * this._maxxy) / (2 * const_ex_1.MERC_MAX);
+            return [x, y];
         };
         return HistMap;
     }(mixin_1.setCustomFunction(source_1.XYZ)));

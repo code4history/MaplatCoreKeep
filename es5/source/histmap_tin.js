@@ -280,62 +280,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 throw err;
             });
         };
-        HistMap_tin.prototype.size2MercsAsync = function (center, zoom, rotate) {
-            var _this = this;
-            var cross = this.size2Xys(center, zoom, rotate).map(function (xy, index) {
-                if (index == 5)
-                    return xy;
-                return _this.histMapCoords2Xy(xy);
-            });
-            var promise = this.xy2MercAsync_returnLayer(cross[0]);
-            return promise.then(function (results) {
-                var index = results[0];
-                var centerMerc = results[1];
-                var promises = cross.map(function (val, i) {
-                    if (i == 5)
-                        return val;
-                    if (i == 0)
-                        return Promise.resolve(centerMerc);
-                    return _this.xy2MercAsync_specifyLayer(val, index);
-                });
-                return Promise.all(promises).catch(function (err) {
-                    throw err;
-                });
-            });
-        };
-        HistMap_tin.prototype.mercs2SizeAsync = function (mercs, asMerc) {
-            var _this = this;
-            if (asMerc === void 0) { asMerc = false; }
-            var promises;
-            if (asMerc) {
-                promises = Promise.resolve(mercs);
-            }
-            else {
-                promises = this.merc2XyAsync_returnLayer(mercs[0]).then(function (results) {
-                    var result = results[0] || results[1];
-                    var index = result[0];
-                    var centerXy = result[1];
-                    return Promise.all(mercs.map(function (merc, i) {
-                        if (i == 5)
-                            return merc;
-                        if (i == 0)
-                            return centerXy;
-                        return _this.merc2XyAsync_specifyLayer(merc, index);
-                    }));
-                });
-            }
-            return promises.then(function (xys) {
-                if (!asMerc) {
-                    xys = xys.map(function (xy, i) {
-                        if (i == 5)
-                            return xy;
-                        return _this.xy2HistMapCoords(xy);
-                    });
-                }
-                return _this.xys2Size(xys);
-            });
-        };
-        HistMap_tin.prototype.mercs2XysAsync = function (mercs) {
+        HistMap_tin.prototype.mercs2SysCoordsAsync_multiLayer = function (mercs) {
             var _this = this;
             var promises = this.merc2XyAsync_returnLayer(mercs[0]).then(function (results) {
                 var hide = false;
@@ -346,12 +291,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     }
                     var index = result[0];
                     var centerXy = result[1];
-                    if (i != 0 && !hide)
+                    if (i !== 0 && !hide)
                         return Promise.resolve([centerXy]);
                     return Promise.all(mercs.map(function (merc, j) {
-                        if (j == 5)
-                            return merc;
-                        if (j == 0)
+                        if (j === 5)
+                            return Promise.resolve(merc);
+                        if (j === 0)
                             return Promise.resolve(centerXy);
                         return _this.merc2XyAsync_specifyLayer(merc, index);
                     }));
@@ -366,26 +311,73 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     return result.map(function (xy, i) {
                         if (i == 5)
                             return xy;
-                        return _this.xy2HistMapCoords(xy);
+                        return _this.xy2SysCoord(xy);
                     });
                 });
-            })
-                .catch(function (err) {
-                throw err;
             });
         };
-        HistMap_tin.prototype.xy2MercAsync = function (xy) {
-            var convertXy = this.histMapCoords2Xy(xy);
-            return this.xy2MercAsync_returnLayer(convertXy).then(function (ret) { return ret[1]; });
-        };
-        HistMap_tin.prototype.merc2XyAsync = function (merc, ignoreBackside) {
-            var _this = this;
-            if (ignoreBackside === void 0) { ignoreBackside = false; }
+        HistMap_tin.prototype.merc2XyAsync_base = function (merc, ignoreBackground) {
             return this.merc2XyAsync_returnLayer(merc).then(function (ret) {
-                if (ignoreBackside && !ret[0])
+                if (ignoreBackground && !ret[0])
                     return;
-                var convertXy = !ret[0] ? ret[1][1] : ret[0][1];
-                return _this.xy2HistMapCoords(convertXy);
+                return !ret[0] ? ret[1][1] : ret[0][1];
+            });
+        };
+        HistMap_tin.prototype.merc2XyAsync_ignoreBackground = function (merc) {
+            return this.merc2XyAsync_base(merc, true);
+        };
+        HistMap_tin.prototype.merc2XyAsync = function (merc) {
+            return this.merc2XyAsync_base(merc, false);
+        };
+        HistMap_tin.prototype.xy2MercAsync = function (xy) {
+            return this.xy2MercAsync_returnLayer(xy).then(function (ret) { return ret[1]; });
+        };
+        HistMap_tin.prototype.viewPoint2MercsAsync = function (center, zoom, rotate, size) {
+            var _this = this;
+            var sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
+            var cross = this.sysCoords2Xys(sysCoords);
+            var promise = this.xy2MercAsync_returnLayer(cross[0]);
+            return promise.then(function (results) {
+                var index = results[0];
+                var centerMerc = results[1];
+                var promises = cross.map(function (val, i) {
+                    if (i === 5)
+                        return val;
+                    if (i === 0)
+                        return Promise.resolve(centerMerc);
+                    return _this.xy2MercAsync_specifyLayer(val, index);
+                });
+                return Promise.all(promises).catch(function (err) {
+                    throw err;
+                });
+            });
+        };
+        HistMap_tin.prototype.mercs2ViewPointAsync = function (mercs, asMerc) {
+            var _this = this;
+            if (asMerc === void 0) { asMerc = false; }
+            var promises;
+            if (asMerc) {
+                promises = Promise.resolve(mercs);
+            }
+            else {
+                promises = this.merc2XyAsync_returnLayer(mercs[0]).then(function (results) {
+                    var result = results[0] || results[1];
+                    var index = result[0];
+                    var centerXy = result[1];
+                    return Promise.all(mercs.map(function (merc, i) {
+                        if (i === 5)
+                            return merc;
+                        if (i === 0)
+                            return centerXy;
+                        return _this.merc2XyAsync_specifyLayer(merc, index);
+                    }));
+                });
+            }
+            return promises.then(function (xys) {
+                if (!asMerc) {
+                    xys = _this.xys2SysCoords(xys);
+                }
+                return _this.sysCoords2ViewPoint(xys);
             });
         };
         return HistMap_tin;

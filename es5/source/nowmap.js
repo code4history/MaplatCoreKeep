@@ -97,16 +97,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 });
             });
         };
-        NowMap.prototype.xy2MercAsync = function (xy) {
-            return new Promise(function (resolve, _reject) {
-                resolve(xy);
-            });
-        };
-        NowMap.prototype.merc2XyAsync = function (merc) {
-            return new Promise(function (resolve, _reject) {
-                resolve(merc);
-            });
-        };
         NowMap.prototype.insideCheckXy = function (xy) {
             if (!this.envelope)
                 return true;
@@ -130,6 +120,41 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         };
         NowMap.prototype.modulateHistMapCoordsInside = function (histCoords) {
             return this.modulateXyInside(histCoords);
+        };
+        NowMap.prototype.merc2XyAsync = function (merc) {
+            return Promise.resolve(merc);
+        };
+        NowMap.prototype.merc2XyAsync_ignoreBackground = function (merc) {
+            return this.merc2XyAsync(merc);
+        };
+        NowMap.prototype.xy2MercAsync = function (xy) {
+            return Promise.resolve(xy);
+        };
+        NowMap.prototype.xy2SysCoord = function (xy) {
+            return xy;
+        };
+        NowMap.prototype.sysCoord2Xy = function (sysCoord) {
+            return sysCoord;
+        };
+        NowMap.prototype.viewPoint2MercsAsync = function (center, zoom, rotate, size) {
+            var sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
+            var xys = this.sysCoords2Xys(sysCoords);
+            return this.xys2MercsAsync(xys);
+        };
+        NowMap.prototype.mercs2ViewPointAsync = function (mercs) {
+            var _this = this;
+            return this.mercs2XysAsync(mercs).then(function (xys) {
+                var sysCoords = _this.xys2SysCoords(xys);
+                return _this.sysCoords2ViewPoint(sysCoords);
+            });
+        };
+        NowMap.prototype.mercs2SysCoordsAsync_multiLayer = function (mercs) {
+            var _this = this;
+            return Promise.all(mercs.map(function (merc, index) {
+                if (index === 5)
+                    return merc;
+                return _this.merc2SysCoordAsync(merc);
+            })).then(function (xys) { return [xys]; });
         };
         return NowMap;
     }(mixin_1.setCustomFunction(source_1.OSM)));

@@ -86,16 +86,25 @@ export class NowMap extends setCustomFunction(OSM) {
     return sysCoord;
   }
 
-  _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size) {
+  viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size) {
     const sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
-    const xys = this._sysCoords2Xys(sysCoords);
-    return this._xys2MercsAsync(xys);
+    const xys = this.sysCoords2Xys(sysCoords);
+    return this.xys2MercsAsync(xys);
   }
 
-  _mercs2ViewPointAsync(mercs: Coordinate[]) {
-    return this._mercs2XysAsync(mercs).then(xys => {
-      const sysCoords = this._xys2SysCoords(xys as Coordinate[]);
+  mercs2ViewPointAsync(mercs: Coordinate[]) {
+    return this.mercs2XysAsync(mercs).then(xys => {
+      const sysCoords = this.xys2SysCoords(xys);
       return this.sysCoords2ViewPoint(sysCoords);
     });
+  }
+
+  mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]> {
+    return Promise.all(
+        mercs.map((merc, index) => {
+          if (index === 5) return merc;
+          return this.merc2SysCoordAsync(merc);
+        })
+    ).then(xys => [xys]);
   }
 }
