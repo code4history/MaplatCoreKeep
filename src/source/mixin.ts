@@ -27,6 +27,7 @@ type ViewpointObject = {
   direction?: number;
   rotation?: number;
 };
+export type ViewpointArray = [Coordinate?, number?, number?]; // Center, zoom, rotation
 
 export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
   abstract class Mixin extends Base {
@@ -127,24 +128,24 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       this.viewpoint2MercsAsync()
         .then(mercs => this.mercs2MercViewpoint(mercs))
         .then(mercViewpoint => {
-          const mercs = this.mercViewpoint2Mercs(
+          const mercs = this.mercViewpoint2Mercs([
             merc || mercViewpoint[0],
             mercZoom || mercViewpoint[1] || 17,
-            direction != null ? direction : mercViewpoint[2]
-          );
-          this.mercs2ViewpointAsync(mercs).then(size => {
+            direction !== null ? direction : mercViewpoint[2]
+          ]);
+          this.mercs2ViewpointAsync(mercs).then(viewpoint => {
             if (merc != null) {
-              view?.setCenter(size[0]);
+              view?.setCenter(viewpoint[0]);
             } else if (xy != null) {
               view?.setCenter(xy);
             }
             if (mercZoom != null) {
-              view?.setZoom(size[1]);
+              view?.setZoom(viewpoint[1]!);
             } else if (zoom != null) {
               view?.setZoom(zoom);
             }
             if (direction != null) {
-              view?.setRotation(size[2]);
+              view?.setRotation(viewpoint[2]!);
             } else if (rotation != null) {
               view?.setRotation(rotation);
             }
@@ -351,7 +352,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     abstract xy2SysCoord(xy: Coordinate): Coordinate;
     abstract sysCoord2Xy(sysCoord: Coordinate): Coordinate;
     abstract viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
-    abstract mercs2ViewpointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
+    abstract mercs2ViewpointAsync(mercs: Coordinate[]): Promise<ViewpointArray>;
     abstract mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
 
     merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
@@ -378,10 +379,13 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
 
     // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
     viewpoint2SysCoords(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
-      return this.mercViewpoint2Mercs(center, zoom, rotate, size);
+      return this.mercViewpoint2Mercs([center, zoom, rotate], size);
     }
 
-    mercViewpoint2Mercs(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
+    mercViewpoint2Mercs(viewpoint: ViewpointArray, size?: Size): Coordinate[] {
+      let center = viewpoint ? viewpoint[0] : undefined;
+      const zoom = viewpoint ? viewpoint[1] : undefined;
+      const rotate = viewpoint ? viewpoint[2] : undefined;
       if (center === undefined) {
         center = this._map!.getView().getCenter();
       }
@@ -399,12 +403,12 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 地図座標5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
-    sysCoords2Viewpoint(sysCoords: Coordinate[]): [Coordinate, number, number] {
+    sysCoords2Viewpoint(sysCoords: Coordinate[]): ViewpointArray {
       return this.mercs2MercViewpoint(sysCoords);
     }
 
     // メルカトル5地点情報からメルカトル地図でのサイズ情報（中心座標、サイズ、回転）を得る
-    mercs2MercViewpoint(mercs: Coordinate[]): [Coordinate, number, number] {
+    mercs2MercViewpoint(mercs: Coordinate[]): ViewpointArray {
       const center = mercs[0];
       let size = mercs[5];
       const nesw = mercs.slice(1, 5);

@@ -10,6 +10,7 @@ import { Coordinate } from "ol/coordinate";
 import { Feature, Polygon } from "@turf/turf";
 import { store2HistMap4Core } from "./store_handler";
 import {Size} from "ol/size";
+import {ViewpointArray} from "./mixin";
 
 export class HistMap_tin extends HistMap {
   tins: Tin[];
@@ -323,7 +324,7 @@ export class HistMap_tin extends HistMap {
     });
   }
 
-  mercs2ViewpointAsync(mercs: Coordinate[], asMerc = false): Promise<[Coordinate, number, number]> {
+  mercs2ViewpointAsync(mercs: Coordinate[], asMerc = false): Promise<ViewpointArray> {
     let promises;
     if (asMerc) {
       promises = Promise.resolve(mercs);
