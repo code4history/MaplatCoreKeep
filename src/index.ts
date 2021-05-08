@@ -692,7 +692,7 @@ export class MaplatApp extends EventTarget {
         })()
       : x && y
       ? new Promise(resolve => {
-          resolve((src as HistMap).xy2HistMapCoords([x, y]));
+          resolve((src as HistMap).xy2SysCoord([x, y]));
         })
       : (function () {
           const merc = transform(lnglat, "EPSG:4326", "EPSG:3857");

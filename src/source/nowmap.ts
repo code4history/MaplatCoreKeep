@@ -78,16 +78,16 @@ export class NowMap extends setCustomFunction(OSM) {
     return Promise.resolve(xy);
   }
 
-  _xy2SysCoord(xy: Coordinate): Coordinate {
+  xy2SysCoord(xy: Coordinate): Coordinate {
     return xy;
   }
 
-  _sysCoord2Xy(sysCoord: Coordinate): Coordinate {
+  sysCoord2Xy(sysCoord: Coordinate): Coordinate {
     return sysCoord;
   }
 
   _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size) {
-    const sysCoords = this._viewPoint2SysCoords(center, zoom, rotate, size);
+    const sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
     const xys = this._sysCoords2Xys(sysCoords);
     return this._xys2MercsAsync(xys);
   }
@@ -95,7 +95,7 @@ export class NowMap extends setCustomFunction(OSM) {
   _mercs2ViewPointAsync(mercs: Coordinate[]) {
     return this._mercs2XysAsync(mercs).then(xys => {
       const sysCoords = this._xys2SysCoords(xys as Coordinate[]);
-      return this._sysCoords2ViewPoint(sysCoords);
+      return this.sysCoords2ViewPoint(sysCoords);
     });
   }
 }

@@ -281,7 +281,7 @@ export class HistMap_tin extends HistMap {
           }
           return result.map((xy: any, i: any) => {
             if (i == 5) return xy;
-            return this.xy2HistMapCoords(xy);
+            return this.xy2SysCoord(xy);
           });
         })
       )
@@ -316,7 +316,7 @@ export class HistMap_tin extends HistMap {
 
   // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
   _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]> {
-    const sysCoords = this._viewPoint2SysCoords(center, zoom, rotate, size);
+    const sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
     const cross = this._sysCoords2Xys(sysCoords);
 
     const promise = this.xy2MercAsync_returnLayer(cross[0]);
@@ -356,7 +356,7 @@ export class HistMap_tin extends HistMap {
       if (!asMerc) {
         xys = this._xys2SysCoords(xys);
       }
-      return this._sysCoords2ViewPoint(xys);
+      return this.sysCoords2ViewPoint(xys);
     });
   }
 }

@@ -126,14 +126,6 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
     setupTileLoadFunction(this);
   }
 
-  histMapCoords2Xy(histCoords: Coordinate): Coordinate {
-    return this._sysCoord2Xy(histCoords);
-  } // unifyTerm仮対応
-
-  xy2HistMapCoords(xy: Coordinate): Coordinate {
-    return this._xy2SysCoord(xy);
-  } // unifyTerm仮対応
-
   insideCheckXy(xy: Coordinate) {
     return !(
       xy[0] < 0 ||
@@ -144,7 +136,7 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
   }
 
   insideCheckHistMapCoords(histCoords: Coordinate) {
-    return this.insideCheckXy(this.histMapCoords2Xy(histCoords));
+    return this.insideCheckXy(this.sysCoord2Xy(histCoords));
   }
 
   modulateXyInside(xy: any) {
@@ -158,21 +150,21 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
   }
 
   modulateHistMapCoordsInside(histCoords: any) {
-    const xy = this.histMapCoords2Xy(histCoords);
+    const xy = this.sysCoord2Xy(histCoords);
     const ret = this.modulateXyInside(xy);
-    return this.xy2HistMapCoords(ret);
+    return this.xy2SysCoord(ret);
   }
 
   // unifyTerm対応
   // https://github.com/code4history/MaplatCore/issues/19
 
-  _xy2SysCoord(xy: Coordinate): Coordinate {
+  xy2SysCoord(xy: Coordinate): Coordinate {
     const sysCoordX = (xy[0] * (2 * MERC_MAX)) / this._maxxy - MERC_MAX;
     const sysCoordY = -1 * ((xy[1] * (2 * MERC_MAX)) / this._maxxy - MERC_MAX);
     return [sysCoordX, sysCoordY];
   }
 
-  _sysCoord2Xy(sysCoord: Coordinate): Coordinate {
+  sysCoord2Xy(sysCoord: Coordinate): Coordinate {
     const x = ((sysCoord[0] + MERC_MAX) * this._maxxy) / (2 * MERC_MAX);
     const y = ((-sysCoord[1] + MERC_MAX) * this._maxxy) / (2 * MERC_MAX);
     return [x, y];
