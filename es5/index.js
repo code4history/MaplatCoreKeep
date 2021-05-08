@@ -1433,7 +1433,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 .then(function (mercs) {
                 _this.mercBuffer.mercs = mercs;
                 _this.logger.debug("Mercs: " + mercs);
-                var toPromise = to.mercs2SizeAsync(mercs);
+                var toPromise = to.mercs2ViewPointAsync(mercs);
                 var key = to.mapID;
                 if (_this.mercBuffer.buffer[key]) {
                     _this.logger.debug("To: Use buffer");
