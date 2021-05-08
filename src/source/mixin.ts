@@ -17,7 +17,7 @@ import { Size } from "ol/size";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type Constructor<T = {}> = new (...args: any[]) => T;
-type Condition = {
+type ViewpointObject = {
   x?: number;
   y?: number;
   latitude?: number;
@@ -105,7 +105,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 経緯度lnglat、メルカトルズームmercZoom、地図ズームzoom、方角direction、地図回転rotation等を指定し地図移動
-    setViewpointRadian(cond: Condition) {
+    setViewpointRadian(cond: ViewpointObject) {
       let merc: Coordinate;
       let xy: Coordinate;
       const mercZoom = cond.mercZoom;
@@ -152,7 +152,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
         });
     }
 
-    setViewpoint(cond: Condition) {
+    setViewpoint(cond: ViewpointObject) {
       if (cond.rotation) {
         cond.rotation = (cond.rotation * Math.PI) / 180;
       }
