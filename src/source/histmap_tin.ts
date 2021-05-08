@@ -10,7 +10,7 @@ import { Coordinate } from "ol/coordinate";
 import { Feature, Polygon } from "@turf/turf";
 import { store2HistMap4Core } from "./store_handler";
 import {Size} from "ol/size";
-import {ViewpointArray} from "./mixin";
+import {CrossCoordinatesArray, ViewpointArray} from "./mixin";
 
 export class HistMap_tin extends HistMap {
   tins: Tin[];
@@ -244,8 +244,8 @@ export class HistMap_tin extends HistMap {
       });
   }
 
-  mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]> {
-    const promises = this.merc2XyAsync_returnLayer(mercs[0]).then(results => {
+  mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]> {
+    const promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(results => {
       let hide = false;
       return Promise.all(
         results.map((result, i) => {
@@ -257,8 +257,7 @@ export class HistMap_tin extends HistMap {
           const centerXy = result[1];
           if (i !== 0 && !hide) return Promise.resolve([centerXy]);
           return Promise.all(
-            mercs.map((merc, j) => {
-              if (j === 5) return Promise.resolve(merc);
+              mercs[0].map((merc, j) => {
               if (j === 0) return Promise.resolve(centerXy);
               return this.merc2XyAsync_specifyLayer(merc, index);
             })
@@ -272,10 +271,7 @@ export class HistMap_tin extends HistMap {
           if (!result) {
             return;
           }
-          return result.map((xy, i) => {
-            if (i == 5) return xy;
-            return this.xy2SysCoord(xy);
-          });
+          return [result.map(xy => this.xy2SysCoord(xy)), mercs[1]];
         })
       );
   }
@@ -305,48 +301,37 @@ export class HistMap_tin extends HistMap {
   }
 
   // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-  viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size): Promise<Coordinate[]> {
+  viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size): Promise<CrossCoordinatesArray> {
     const sysCoords = this.viewpoint2SysCoords(viewpoint, size);
     const cross = this.sysCoords2Xys(sysCoords);
 
-    const promise = this.xy2MercAsync_returnLayer(cross[0]);
+    const promise = this.xy2MercAsync_returnLayer(cross[0][0]);
     return promise.then(results => {
       const index = results[0];
       const centerMerc = results[1];
-      const promises = cross.map((val, i) => {
-        if (i === 5) return val;
+      const promises = cross[0].map((val, i) => {
         if (i === 0) return Promise.resolve(centerMerc);
         return this.xy2MercAsync_specifyLayer(val, index);
       });
-      return Promise.all(promises).catch(err => {
-        throw err;
-      });
+      return Promise.all(promises).then(mercs => [mercs, size]);
     });
   }
 
-  mercs2ViewpointAsync(mercs: Coordinate[], asMerc = false): Promise<ViewpointArray> {
-    let promises;
-    if (asMerc) {
-      promises = Promise.resolve(mercs);
-    } else {
-      promises = this.merc2XyAsync_returnLayer(mercs[0]).then(results => {
-        const result = results[0] || results[1];
-        const index = result![0];
-        const centerXy = result![1];
-        return Promise.all(
-            mercs.map((merc, i) => {
-              if (i === 5) return merc;
-              if (i === 0) return centerXy;
-              return this.merc2XyAsync_specifyLayer(merc, index);
-            })
-        );
-      });
-    }
+  mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray> {
+    const promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(results => {
+      const result = results[0] || results[1];
+      const index = result![0];
+      const centerXy = result![1];
+      return Promise.all(
+        mercs[0].map((merc, i) => {
+          if (i === 0) return centerXy;
+          return this.merc2XyAsync_specifyLayer(merc, index);
+        })
+      );
+    });
     return promises.then(xys => {
-      if (!asMerc) {
-        xys = this.xys2SysCoords(xys);
-      }
-      return this.sysCoords2Viewpoint(xys);
+      const sysCoords = this.xys2SysCoords([xys, mercs[1]]);
+      return this.sysCoords2Viewpoint(sysCoords);
     });
   }
 }

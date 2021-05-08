@@ -28,6 +28,10 @@ type ViewpointObject = {
   rotation?: number;
 };
 export type ViewpointArray = [Coordinate?, number?, number?]; // Center, zoom, rotation
+export type CrossCoordinatesArray = [
+  Coordinate[], // Coordinates of center and around 4 points
+  Size? // size
+];
 
 export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
   abstract class Mixin extends Base {
@@ -183,19 +187,19 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       }
       const mercs = this.mercsFromGPSValue(position.lnglat, position.acc);
 
-      return this.mercs2SysCoordsAsync_multiLayer(mercs)
+      return this.mercs2SysCoordsAsync_multiLayer([mercs])
         .then(results => {
           const hide = !results[0];
           const xys = hide ? results[1]! : results[0]!;
           const sub = !hide ? results[1] : null;
           const pos: any = { xy: xys[0] };
-          if (!this.insideCheckHistMapCoords(xys[0]!)) {
+          if (!this.insideCheckHistMapCoords(xys[0][0]!)) {
             map?.handleGPS(false, true);
             return false;
           }
-          const news = xys.slice(1);
+          const news = xys[0].slice(1);
 
-          pos.rad = news.reduce((prev: number, curr: any, index: number) => {
+          pos.rad = news.reduce((prev: number, curr: Coordinate, index: number) => {
             const ret =
               prev +
               Math.sqrt(
@@ -207,7 +211,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
           if (!ignoreMove) view?.setCenter(pos.xy);
           map?.setGPSPosition(pos, hide ? "hide" : null);
           if (sub) {
-            map?.setGPSPosition({ xy: sub[0] }, "sub");
+            map?.setGPSPosition({ xy: sub[0][0] }, "sub");
           }
           return true;
         })
@@ -351,9 +355,9 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     abstract xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract xy2SysCoord(xy: Coordinate): Coordinate;
     abstract sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-    abstract viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size): Promise<Coordinate[]>;
-    abstract mercs2ViewpointAsync(mercs: Coordinate[]): Promise<ViewpointArray>;
-    abstract mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
+    abstract viewpoint2MercsAsync(viewpoint?:ViewpointArray, size?: Size): Promise<CrossCoordinatesArray>;
+    abstract mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray>;
+    abstract mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]>;
 
     merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
       return this.merc2XyAsync_ignoreBackground(merc).then(xy => xy ? this.xy2SysCoord(xy) : undefined);
@@ -378,11 +382,11 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-    viewpoint2SysCoords(viewpoint?: ViewpointArray, size?: Size): Coordinate[] {
+    viewpoint2SysCoords(viewpoint?: ViewpointArray, size?: Size): CrossCoordinatesArray {
       return this.mercViewpoint2Mercs(viewpoint, size);
     }
 
-    mercViewpoint2Mercs(viewpoint?: ViewpointArray, size?: Size): Coordinate[] {
+    mercViewpoint2Mercs(viewpoint?: ViewpointArray, size?: Size): CrossCoordinatesArray {
       let center = viewpoint ? viewpoint[0] : undefined;
       const zoom = viewpoint ? viewpoint[1] : undefined;
       const rotate = viewpoint ? viewpoint[2] : undefined;
@@ -398,20 +402,19 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
         xy[0] * radius + center![0],
         xy[1] * radius + center![1]
       ]);
-      cross.push(size);
-      return cross;
+      return [cross, size];
     }
 
     // 地図座標5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
-    sysCoords2Viewpoint(sysCoords: Coordinate[]): ViewpointArray {
+    sysCoords2Viewpoint(sysCoords: CrossCoordinatesArray): ViewpointArray {
       return this.mercs2MercViewpoint(sysCoords);
     }
 
     // メルカトル5地点情報からメルカトル地図でのサイズ情報（中心座標、サイズ、回転）を得る
-    mercs2MercViewpoint(mercs: Coordinate[]): ViewpointArray {
-      const center = mercs[0];
-      let size = mercs[5];
-      const nesw = mercs.slice(1, 5);
+    mercs2MercViewpoint(mercs: CrossCoordinatesArray): ViewpointArray {
+      const center = mercs[0][0];
+      let size = mercs[1];
+      const nesw = mercs[0].slice(1, 5);
       const neswDelta = nesw.map(val => [
         val[0] - center[0],
         val[1] - center[1]
@@ -448,20 +451,20 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       return [center, zoom, omega];
     }
 
-    sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[] {
-      return sysCoords.map((sysCoord, index) => index === 5 ? sysCoord : this.sysCoord2Xy(sysCoord));
+    sysCoords2Xys(sysCoords: CrossCoordinatesArray): CrossCoordinatesArray {
+      return [sysCoords[0].map(sysCoord => this.sysCoord2Xy(sysCoord)), sysCoords[1]];
     }
 
-    xys2SysCoords(xys: Coordinate[]): Coordinate[] {
-      return xys.map((xy, index) => index === 5 ? xy : this.xy2SysCoord(xy));
+    xys2SysCoords(xys: CrossCoordinatesArray): CrossCoordinatesArray {
+      return [xys[0].map(xy => this.xy2SysCoord(xy)), xys[1]];
     }
 
-    mercs2XysAsync(mercs: Coordinate[]): Promise<(Coordinate)[]> {
-      return Promise.all(mercs.map((merc, index) => index === 5 ? Promise.resolve(merc) : this.merc2XyAsync(merc)));
+    mercs2XysAsync(mercs: CrossCoordinatesArray): Promise<CrossCoordinatesArray> {
+      return Promise.all(mercs[0].map(merc => this.merc2XyAsync(merc))).then(xys => [xys, mercs[1]]);
     }
 
-    xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]> {
-      return Promise.all(xys.map((xy, index) => index === 5 ? Promise.resolve(xy) : this.xy2MercAsync(xy)));
+    xys2MercsAsync(xys: CrossCoordinatesArray): Promise<CrossCoordinatesArray> {
+      return Promise.all(xys[0].map(xy => this.xy2MercAsync(xy))).then(mercs => [mercs, xys[1]]);
     }
   }
 

@@ -5,6 +5,7 @@ import { lineString, point } from "@turf/helpers";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import lineIntersect from "@turf/line-intersect";
 import {
+  CrossCoordinatesArray,
   setCustomFunction,
   setCustomInitialize,
   setupTileLoadFunction, ViewpointArray
@@ -92,19 +93,16 @@ export class NowMap extends setCustomFunction(OSM) {
     return this.xys2MercsAsync(xys);
   }
 
-  mercs2ViewpointAsync(mercs: Coordinate[]) {
+  mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray> {
     return this.mercs2XysAsync(mercs).then(xys => {
       const sysCoords = this.xys2SysCoords(xys);
       return this.sysCoords2Viewpoint(sysCoords);
     });
   }
 
-  mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]> {
+  mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]> {
     return Promise.all(
-        mercs.map((merc, index) => {
-          if (index === 5) return merc;
-          return this.merc2SysCoordAsync(merc);
-        })
-    ).then(xys => [xys]);
+      mercs[0].map(merc => this.merc2SysCoordAsync(merc))
+    ).then(xys => [[xys, mercs[1]]]);
   }
 }
