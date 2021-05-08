@@ -38,14 +38,6 @@ export class NowMap extends setCustomFunction(OSM) {
     return new NowMap(options);
   }
 
-  xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
-    return this._xy2MercAsync(xy);
-  } // unifyTerm仮対応済
-
-  merc2XyAsync(merc: Coordinate): Promise<Coordinate | undefined> {
-    return this._merc2XyAsync(merc);
-  } // unifyTerm仮対応済
-
   insideCheckXy(xy: Coordinate) {
     if (!this.envelope) return true;
     const point_ = point(xy);
@@ -74,11 +66,15 @@ export class NowMap extends setCustomFunction(OSM) {
   // unifyTerm対応
   // https://github.com/code4history/MaplatCore/issues/19
 
-  _merc2XyAsync(merc: Coordinate): Promise<Coordinate | undefined> {
+  merc2XyAsync(merc: Coordinate): Promise<Coordinate> {
     return Promise.resolve(merc);
   }
 
-  _xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
+  merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
+    return this.merc2XyAsync(merc);
+  }
+
+  xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
     return Promise.resolve(xy);
   }
 

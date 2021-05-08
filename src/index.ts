@@ -443,7 +443,7 @@ export class MaplatApp extends EventTarget {
       } else {
         const xy = evt.coordinate;
         this.dispatchEvent(new CustomEvent("clickMapXy", xy));
-        (this.from as NowMap | HistMap).xy2MercAsync(xy).then((merc: any) => {
+        (this.from as NowMap | HistMap).sysCoord2MercAsync(xy).then((merc: any) => {
           this.dispatchEvent(new CustomEvent("clickMapMerc", merc));
           const lnglat = transform(merc, "EPSG:3857", "EPSG:4326");
           this.dispatchEvent(
@@ -464,7 +464,7 @@ export class MaplatApp extends EventTarget {
     const pointerCounter: any = {};
     const pointermoveHandler = (xy: any) => {
       this.dispatchEvent(new CustomEvent("pointerMoveOnMapXy", xy));
-      (this.from as HistMap | NowMap).xy2MercAsync(xy).then((merc: any) => {
+      (this.from as HistMap | NowMap).sysCoord2MercAsync(xy).then((merc: any) => {
         this.dispatchEvent(new CustomEvent("pointerMoveOnMapMerc", merc));
         if (xyBuffer) {
           const next = xyBuffer;
@@ -688,7 +688,7 @@ export class MaplatApp extends EventTarget {
       : defaultpin;
     const promise = coords
       ? (function () {
-          return (src as HistMap | NowMap).merc2XyAsync(coords, true);
+          return (src as HistMap | NowMap).merc2SysCoordAsync_ignoreBackground(coords);
         })()
       : x && y
       ? new Promise(resolve => {
@@ -696,7 +696,7 @@ export class MaplatApp extends EventTarget {
         })
       : (function () {
           const merc = transform(lnglat, "EPSG:4326", "EPSG:3857");
-          return (src as HistMap | NowMap).merc2XyAsync(merc, true);
+          return (src as HistMap | NowMap).merc2SysCoordAsync_ignoreBackground(merc);
         })();
     return promise.then((xy: any) => {
       if (!xy) return;
@@ -730,7 +730,7 @@ export class MaplatApp extends EventTarget {
             return merc2XyRecurse(coord, isLnglat);
           } else {
             if (isLnglat) coord = transform(coord, "EPSG:4326", "EPSG:3857");
-            return (this.from as HistMap | NowMap).merc2XyAsync(coord);
+            return (this.from as HistMap | NowMap).merc2SysCoordAsync(coord);
           }
         })
       );

@@ -106,7 +106,7 @@ export class HistMap_tin extends HistMap {
     }) as Promise<[number, Coordinate]>;
   }
 
-  merc2XyAsync_returnLayer(merc: Coordinate) {
+  merc2XyAsync_returnLayer(merc: Coordinate): Promise<([number, Coordinate] | undefined)[]> {
     return Promise.all(
       this.tins.map(
         (tin, index) =>
@@ -290,28 +290,27 @@ export class HistMap_tin extends HistMap {
       });
   }
 
-  xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
-    return this._sysCoord2MercAsync(xy);
-  } // unifyTerm仮対応済
-
-  merc2XyAsync(merc: Coordinate, ignoreBackside = false): Promise<Coordinate | undefined> {
-    return this._merc2SysCoordAsync(merc, ignoreBackside);
-  } // unifyTerm仮対応済
-
   // unifyTerm対応
   // https://github.com/code4history/MaplatCore/issues/19
 
-  _merc2XyAsync(
-    merc: Coordinate,
-    ignoreBackside = false
-  ): Promise<Coordinate | undefined> {
+  // 複数レイヤがある場合、ignoreBackside === trueであれば、先頭レイヤ以外は無視する(先頭レイヤ内でなければ変換しない)
+  // ignoreBackside === falseであれば、先頭レイヤで変換できなければ他レイヤでの結果を返す
+  merc2XyAsync_base(merc: Coordinate, ignoreBackground: boolean): Promise<Coordinate | void> {
     return this.merc2XyAsync_returnLayer(merc).then(ret => {
-      if (ignoreBackside && !ret[0]) return;
+      if (ignoreBackground && !ret[0]) return;
       return !ret[0] ? ret[1]![1] : ret[0][1];
     });
   }
 
-  _xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
+  merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
+    return this.merc2XyAsync_base(merc, true);
+  }
+
+  merc2XyAsync(merc: Coordinate): Promise<Coordinate> {
+    return this.merc2XyAsync_base(merc, false) as Promise<Coordinate>;
+  }
+
+  xy2MercAsync(xy: Coordinate): Promise<Coordinate> {
     return this.xy2MercAsync_returnLayer(xy).then(ret => ret[1]);
   }
 

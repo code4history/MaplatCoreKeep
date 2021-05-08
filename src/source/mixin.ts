@@ -45,11 +45,6 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     envelope?: Feature<Polygon>;
     centroid?: number[];
 
-    abstract xy2MercAsync(val: Coordinate): Promise<Coordinate>;
-    abstract merc2XyAsync(
-      merc: Coordinate,
-      ignoreBackside?: boolean
-    ): Promise<Coordinate | undefined>;
     abstract insideCheckHistMapCoords(coord: Coordinate): boolean;
 
     getCacheEnable() {
@@ -285,7 +280,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       const cross = this.size2Xys(center, zoom, rotate);
       const promises = cross.map((val, index) => {
         if (index === 5) return Promise.resolve(val);
-        return this.xy2MercAsync(val);
+        return this.sysCoord2MercAsync(val);
       });
       return Promise.all(promises);
     }
@@ -297,7 +292,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
         : Promise.all(
             mercs.map((merc: Coordinate, index: number) => {
               if (index === 5) return merc;
-              return this.merc2XyAsync(merc).then(val => val!);
+              return this.merc2SysCoordAsync(merc).then(val => val!);
             })
           );
       return promises.then(xys => this.xys2Size(xys as Coordinate[]));
@@ -350,7 +345,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       return Promise.all(
         mercs.map((merc, index) => {
           if (index === 5) return merc;
-          return this.merc2XyAsync(merc);
+          return this.merc2SysCoordAsync(merc);
         })
       ).then(xys => [xys]);
     }
@@ -455,23 +450,25 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     // unifyTerm対応
     // https://github.com/code4history/MaplatCore/issues/19
 
-    abstract _merc2XyAsync(merc: Coordinate, ignoreBackside?: boolean): Promise<Coordinate | undefined>;
-    abstract _xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
+    abstract merc2XyAsync(merc: Coordinate): Promise<Coordinate>;
+    abstract merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void>;
+    abstract xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract _xy2SysCoord(xy: Coordinate): Coordinate;
     abstract _sysCoord2Xy(sysCoord: Coordinate): Coordinate;
     abstract _viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
     abstract _mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
 
-    _merc2SysCoordAsync(
-        merc: Coordinate,
-        ignoreBackside = false
-    ): Promise<Coordinate | undefined> {
-      return this._merc2XyAsync(merc, ignoreBackside).then(xy => xy ? this._xy2SysCoord(xy) : xy);
+    merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
+      return this.merc2XyAsync_ignoreBackground(merc).then(xy => xy ? this._xy2SysCoord(xy) : undefined);
     }
 
-    _sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate> {
+    merc2SysCoordAsync(merc: Coordinate): Promise<Coordinate> {
+      return this.merc2XyAsync(merc).then(xy => xy ? this._xy2SysCoord(xy) : xy);
+    }
+
+    sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate> {
       const xy = this._sysCoord2Xy(sysCoord);
-      return this._xy2MercAsync(xy);
+      return this.xy2MercAsync(xy);
     }
 
     // size(画面サイズ)とズームから、地図面座標上での半径を得る。zoom無指定の場合は自動取得
@@ -550,12 +547,12 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       return xys.map((xy, index) => index === 5 ? xy : this._xy2SysCoord(xy));
     }
 
-    _mercs2XysAsync(mercs: Coordinate[]): Promise<(undefined | Coordinate)[]> {
-      return Promise.all(mercs.map((merc, index) => index === 5 ? Promise.resolve(merc) : this._merc2XyAsync(merc)));
+    _mercs2XysAsync(mercs: Coordinate[]): Promise<(Coordinate)[]> {
+      return Promise.all(mercs.map((merc, index) => index === 5 ? Promise.resolve(merc) : this.merc2XyAsync(merc)));
     }
 
     _xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]> {
-      return Promise.all(xys.map((xy, index) => index === 5 ? Promise.resolve(xy) : this._xy2MercAsync(xy)));
+      return Promise.all(xys.map((xy, index) => index === 5 ? Promise.resolve(xy) : this.xy2MercAsync(xy)));
     }
   }
 
