@@ -35,7 +35,7 @@ export declare function setCustomFunction<TBase extends Constructor>(Base: TBase
         minZoom?: number | undefined;
         envelope?: Feature<Polygon, import("@turf/helpers").Properties> | undefined;
         centroid?: number[] | undefined;
-        insideCheckHistMapCoords(coord: Coordinate): boolean;
+        insideCheckSysCoord(sysCoord: Coordinate): boolean;
         getCacheEnable(): boolean;
         getTileCacheStatsAsync(): Promise<{
             size?: number | undefined;

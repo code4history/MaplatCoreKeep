@@ -284,7 +284,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     var xys = hide ? results[1] : results[0];
                     var sub = !hide ? results[1] : null;
                     var pos = { xy: xys[0][0] };
-                    if (!_this.insideCheckHistMapCoords(xys[0][0])) {
+                    if (!_this.insideCheckSysCoord(xys[0][0])) {
                         map === null || map === void 0 ? void 0 : map.handleGPS(false, true);
                         return false;
                     }

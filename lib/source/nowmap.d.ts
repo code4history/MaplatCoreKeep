@@ -19,7 +19,7 @@ declare const NowMap_base: {
         minZoom?: number | undefined;
         envelope?: import("@turf/helpers").Feature<import("@turf/helpers").Polygon, import("@turf/helpers").Properties> | undefined;
         centroid?: number[] | undefined;
-        insideCheckHistMapCoords(coord: Coordinate): boolean;
+        insideCheckSysCoord(sysCoord: Coordinate): boolean;
         getCacheEnable(): boolean;
         getTileCacheStatsAsync(): Promise<{
             size?: number | undefined;
@@ -92,9 +92,9 @@ export declare class NowMap extends NowMap_base {
     constructor(options?: any);
     static createAsync(options: any): Promise<NowMap>;
     insideCheckXy(xy: Coordinate): boolean;
-    insideCheckHistMapCoords(histCoords: Coordinate): boolean;
+    insideCheckSysCoord(histCoords: Coordinate): boolean;
     modulateXyInside(xy: any): any;
-    modulateHistMapCoordsInside(histCoords: any): any;
+    modulateSysCoordInside(histCoords: any): any;
     merc2XyAsync(merc: Coordinate): Promise<Coordinate>;
     merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void>;
     xy2MercAsync(xy: Coordinate): Promise<Coordinate>;

@@ -135,8 +135,8 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
     );
   }
 
-  insideCheckHistMapCoords(histCoords: Coordinate) {
-    return this.insideCheckXy(this.sysCoord2Xy(histCoords));
+  insideCheckSysCoord(sysCoord: Coordinate) {
+    return this.insideCheckXy(this.sysCoord2Xy(sysCoord));
   }
 
   modulateXyInside(xy: any) {
@@ -149,7 +149,7 @@ export abstract class HistMap extends setCustomFunction(XYZ) {
     ];
   }
 
-  modulateHistMapCoordsInside(histCoords: any) {
+  modulateSysCoordInside(histCoords: any) {
     const xy = this.sysCoord2Xy(histCoords);
     const ret = this.modulateXyInside(xy);
     return this.xy2SysCoord(ret);

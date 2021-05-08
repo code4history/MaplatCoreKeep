@@ -578,8 +578,8 @@ export class MaplatApp extends EventTarget {
     const mapOutHandler = (evt: any) => {
       let histCoord = evt.frameState.viewState.center;
       const source = this.from;
-      if (!(source as HistMap | NowMap).insideCheckHistMapCoords(histCoord)) {
-        histCoord = (source as HistMap | NowMap).modulateHistMapCoordsInside(
+      if (!(source as HistMap | NowMap).insideCheckSysCoord(histCoord)) {
+        histCoord = (source as HistMap | NowMap).modulateSysCoordInside(
           histCoord
         );
         evt.target.getView().setCenter(histCoord);
@@ -700,7 +700,7 @@ export class MaplatApp extends EventTarget {
         })();
     return promise.then((xy: any) => {
       if (!xy) return;
-      if ((src as HistMap | NowMap).insideCheckHistMapCoords(xy)) {
+      if ((src as HistMap | NowMap).insideCheckSysCoord(xy)) {
         this.mapObject.setMarker(xy, { datum: data }, icon);
       }
     });
@@ -1178,7 +1178,7 @@ export class MaplatApp extends EventTarget {
               view.setMaxZoom(to.maxZoom!);
               view.setMinZoom(to.minZoom || 0);
             }
-            if (to.insideCheckHistMapCoords(size[0])) {
+            if (to.insideCheckSysCoord(size[0])) {
               view.setCenter(size[0]);
               view.setZoom(size[1]);
               view.setRotation(this.noRotate ? 0 : size[2]);

@@ -45,7 +45,7 @@ export class NowMap extends setCustomFunction(OSM) {
     return booleanPointInPolygon(point_, this.envelope);
   }
 
-  insideCheckHistMapCoords(histCoords: Coordinate) {
+  insideCheckSysCoord(histCoords: Coordinate) {
     return this.insideCheckXy(histCoords);
   }
 
@@ -60,7 +60,7 @@ export class NowMap extends setCustomFunction(OSM) {
     }
   }
 
-  modulateHistMapCoordsInside(histCoords: any) {
+  modulateSysCoordInside(histCoords: any) {
     return this.modulateXyInside(histCoords);
   }
 

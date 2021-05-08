@@ -551,8 +551,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             var mapOutHandler = function (evt) {
                 var histCoord = evt.frameState.viewState.center;
                 var source = _this.from;
-                if (!source.insideCheckHistMapCoords(histCoord)) {
-                    histCoord = source.modulateHistMapCoordsInside(histCoord);
+                if (!source.insideCheckSysCoord(histCoord)) {
+                    histCoord = source.modulateSysCoordInside(histCoord);
                     evt.target.getView().setCenter(histCoord);
                 }
             };
@@ -666,7 +666,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             return promise.then(function (xy) {
                 if (!xy)
                     return;
-                if (src.insideCheckHistMapCoords(xy)) {
+                if (src.insideCheckSysCoord(xy)) {
                     _this.mapObject.setMarker(xy, { datum: data }, icon);
                 }
             });
@@ -1160,7 +1160,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                             view.setMaxZoom(to.maxZoom);
                             view.setMinZoom(to.minZoom || 0);
                         }
-                        if (to.insideCheckHistMapCoords(size[0])) {
+                        if (to.insideCheckSysCoord(size[0])) {
                             view.setCenter(size[0]);
                             view.setZoom(size[1]);
                             view.setRotation(_this.noRotate ? 0 : size[2]);

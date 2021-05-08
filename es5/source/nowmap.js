@@ -103,7 +103,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             var point_ = helpers_1.point(xy);
             return boolean_point_in_polygon_1.default(point_, this.envelope);
         };
-        NowMap.prototype.insideCheckHistMapCoords = function (histCoords) {
+        NowMap.prototype.insideCheckSysCoord = function (histCoords) {
             return this.insideCheckXy(histCoords);
         };
         NowMap.prototype.modulateXyInside = function (xy) {
@@ -118,7 +118,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 return xy;
             }
         };
-        NowMap.prototype.modulateHistMapCoordsInside = function (histCoords) {
+        NowMap.prototype.modulateSysCoordInside = function (histCoords) {
             return this.modulateXyInside(histCoords);
         };
         NowMap.prototype.merc2XyAsync = function (merc) {

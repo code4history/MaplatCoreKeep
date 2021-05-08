@@ -104,8 +104,8 @@ var __extends = (this && this.__extends) || (function () {
                 xy[1] < 0 ||
                 xy[1] > this.height);
         };
-        HistMap.prototype.insideCheckHistMapCoords = function (histCoords) {
-            return this.insideCheckXy(this.sysCoord2Xy(histCoords));
+        HistMap.prototype.insideCheckSysCoord = function (sysCoord) {
+            return this.insideCheckXy(this.sysCoord2Xy(sysCoord));
         };
         HistMap.prototype.modulateXyInside = function (xy) {
             var dx = xy[0] / (this.width / 2) - 1;
@@ -116,7 +116,7 @@ var __extends = (this && this.__extends) || (function () {
                 ((dy / da + 1) * this.height) / 2
             ];
         };
-        HistMap.prototype.modulateHistMapCoordsInside = function (histCoords) {
+        HistMap.prototype.modulateSysCoordInside = function (histCoords) {
             var xy = this.sysCoord2Xy(histCoords);
             var ret = this.modulateXyInside(xy);
             return this.xy2SysCoord(ret);

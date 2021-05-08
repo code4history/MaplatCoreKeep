@@ -17,7 +17,7 @@ declare const HistMap_base: {
         minZoom?: number | undefined;
         envelope?: import("@turf/helpers").Feature<import("@turf/helpers").Polygon, import("@turf/helpers").Properties> | undefined;
         centroid?: number[] | undefined;
-        insideCheckHistMapCoords(coord: Coordinate): boolean;
+        insideCheckSysCoord(sysCoord: Coordinate): boolean;
         getCacheEnable(): boolean;
         getTileCacheStatsAsync(): Promise<{
             size?: number | undefined;
@@ -92,9 +92,9 @@ export declare abstract class HistMap extends HistMap_base {
     _maxxy: number;
     constructor(options?: any);
     insideCheckXy(xy: Coordinate): boolean;
-    insideCheckHistMapCoords(histCoords: Coordinate): boolean;
+    insideCheckSysCoord(sysCoord: Coordinate): boolean;
     modulateXyInside(xy: any): number[];
-    modulateHistMapCoordsInside(histCoords: any): Coordinate;
+    modulateSysCoordInside(histCoords: any): Coordinate;
     xy2SysCoord(xy: Coordinate): Coordinate;
     sysCoord2Xy(sysCoord: Coordinate): Coordinate;
 }
