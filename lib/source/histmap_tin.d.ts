@@ -10,12 +10,12 @@ export declare class HistMap_tin extends HistMap {
     merc2XyAsync_specifyLayer(merc: Coordinate, layerId: number): Promise<Coordinate>;
     xy2MercAsync_returnLayer(xy: Coordinate): Promise<[number, Coordinate]>;
     merc2XyAsync_returnLayer(merc: Coordinate): Promise<([number, Coordinate] | undefined)[]>;
-    mapSize2MercSize(callback: any): void;
+    setupMapParameter(callback: any): void;
     mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
     merc2XyAsync_base(merc: Coordinate, ignoreBackground: boolean): Promise<Coordinate | void>;
     merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void>;
     merc2XyAsync(merc: Coordinate): Promise<Coordinate>;
     xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
-    viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
-    mercs2ViewPointAsync(mercs: Coordinate[], asMerc?: boolean): Promise<[Coordinate, number, number]>;
+    viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
+    mercs2ViewpointAsync(mercs: Coordinate[], asMerc?: boolean): Promise<[Coordinate, number, number]>;
 }

@@ -54,10 +54,8 @@ declare const NowMap_base: {
         goHome(): void;
         setGPSMarkerAsync(position: any, ignoreMove?: boolean): Promise<unknown>;
         setGPSMarker(position: any, ignoreMove?: boolean): void;
-        mercsFromGivenMercZoom(center: Coordinate, mercZoom?: number | undefined, direction?: number | undefined): Coordinate[];
         mercsFromGPSValue(lnglat: Coordinate, acc: number): number[][];
         rotateMatrix(xys: number[][], theta?: number | undefined): Coordinate[];
-        mercs2MercRotation(xys: Coordinate[]): number;
         resolvePois(pois?: any): Promise<void>;
         getPoi(id: string): undefined;
         addPoi(data: any, clusterId?: string | undefined): any;
@@ -72,17 +70,17 @@ declare const NowMap_base: {
         xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
         xy2SysCoord(xy: Coordinate): Coordinate;
         sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-        viewPoint2MercsAsync(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Promise<Coordinate[]>;
-        mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
+        viewpoint2MercsAsync(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Promise<Coordinate[]>;
+        mercs2ViewpointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
         mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
         merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<void | Coordinate>;
         merc2SysCoordAsync(merc: Coordinate): Promise<Coordinate>;
         sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate>;
         zoom2Radius(size: Size, zoom?: number | undefined): number;
-        viewPoint2SysCoords(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
-        mercViewPoint2Mercs(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
-        sysCoords2ViewPoint(sysCoords: Coordinate[]): [Coordinate, number, number];
-        mercs2MercViewPoint(mercs: Coordinate[]): [Coordinate, number, number];
+        viewpoint2SysCoords(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
+        mercViewpoint2Mercs(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
+        sysCoords2Viewpoint(sysCoords: Coordinate[]): [Coordinate, number, number];
+        mercs2MercViewpoint(mercs: Coordinate[]): [Coordinate, number, number];
         sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[];
         xys2SysCoords(xys: Coordinate[]): Coordinate[];
         mercs2XysAsync(mercs: Coordinate[]): Promise<Coordinate[]>;
@@ -101,8 +99,8 @@ export declare class NowMap extends NowMap_base {
     xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     xy2SysCoord(xy: Coordinate): Coordinate;
     sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-    viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
-    mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
+    viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
+    mercs2ViewpointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
     mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
 }
 export {};

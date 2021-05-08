@@ -376,7 +376,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.setMapOnOff();
             this.setMouseCursor();
             this.setBackMapBehavior();
-            this.raiseChangeViewPoint();
+            this.raiseChangeViewpoint();
         };
         MaplatApp.prototype.setInitialMap = function (cache) {
             return __awaiter(this, void 0, void 0, function () {
@@ -583,7 +583,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             };
             this.mapObject.on("postrender", backMapMove);
         };
-        MaplatApp.prototype.raiseChangeViewPoint = function () {
+        MaplatApp.prototype.raiseChangeViewpoint = function () {
             var _this = this;
             this.mapObject.on("postrender", function (_evt) {
                 var view = _this.mapObject.getView();
@@ -591,8 +591,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 var zoom = view.getDecimalZoom();
                 var rotation = functions_1.normalizeDegree((view.getRotation() * 180) / Math.PI);
                 _this.from
-                    .viewPoint2MercsAsync()
-                    .then(function (mercs) { return _this.mercSrc.mercs2ViewPointAsync(mercs); })
+                    .viewpoint2MercsAsync()
+                    .then(function (mercs) { return _this.mercSrc.mercs2ViewpointAsync(mercs); })
                     .then(function (size) {
                     if (_this.mobileMapMoveBuffer &&
                         _this.mobileMapMoveBuffer[0][0] == size[0][0] &&
@@ -1397,7 +1397,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         MaplatApp.prototype.convertParametersFromCurrent = function (to, callback) {
             var _this = this;
             var view = this.mapObject.getView();
-            var fromPromise = this.from.viewPoint2MercsAsync();
+            var fromPromise = this.from.viewpoint2MercsAsync();
             var current = math_ex_1.recursiveRound([view.getCenter(), view.getZoom(), view.getRotation()], 10);
             if (this.mercBuffer &&
                 this.mercBuffer.mercs &&
@@ -1433,7 +1433,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 .then(function (mercs) {
                 _this.mercBuffer.mercs = mercs;
                 _this.logger.debug("Mercs: " + mercs);
-                var toPromise = to.mercs2ViewPointAsync(mercs);
+                var toPromise = to.mercs2ViewpointAsync(mercs);
                 var key = to.mapID;
                 if (_this.mercBuffer.buffer[key]) {
                     _this.logger.debug("To: Use buffer");

@@ -219,11 +219,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 if (cond.x !== undefined && cond.y != undefined) {
                     xy = [cond.x, cond.y];
                 }
-                this.viewPoint2MercsAsync()
-                    .then(function (mercs) { return _this.mercs2MercViewPoint(mercs); })
-                    .then(function (mercViewPoint) {
-                    var mercs = _this.mercsFromGivenMercZoom(merc || mercViewPoint[0], mercZoom || mercViewPoint[1], direction != null ? direction : mercViewPoint[2]);
-                    _this.mercs2ViewPointAsync(mercs).then(function (size) {
+                this.viewpoint2MercsAsync()
+                    .then(function (mercs) { return _this.mercs2MercViewpoint(mercs); })
+                    .then(function (mercViewpoint) {
+                    var mercs = _this.mercViewpoint2Mercs(merc || mercViewpoint[0], mercZoom || mercViewpoint[1] || 17, direction != null ? direction : mercViewpoint[2]);
+                    _this.mercs2ViewpointAsync(mercs).then(function (size) {
                         if (merc != null) {
                             view === null || view === void 0 ? void 0 : view.setCenter(size[0]);
                         }
@@ -307,19 +307,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 if (ignoreMove === void 0) { ignoreMove = false; }
                 this.setGPSMarkerAsync(position, ignoreMove).then(function () { });
             };
-            Mixin.prototype.mercsFromGivenMercZoom = function (center, mercZoom, direction) {
-                if (mercZoom === undefined) {
-                    mercZoom = 17;
-                }
-                var size = this._map.getSize();
-                var pixel = Math.floor(Math.min(size[0], size[1]) / 4);
-                var delta = (pixel * const_ex_1.MERC_MAX) / 128 / Math.pow(2, mercZoom);
-                var crossDelta = this.rotateMatrix(const_ex_1.MERC_CROSSMATRIX, direction);
-                return crossDelta.map(function (xy) { return [
-                    xy[0] * delta + center[0],
-                    xy[1] * delta + center[1]
-                ]; });
-            };
             Mixin.prototype.mercsFromGPSValue = function (lnglat, acc) {
                 var merc = proj_1.transform(lnglat, "EPSG:4326", "EPSG:3857");
                 var latrad = (lnglat[1] * Math.PI) / 180;
@@ -341,33 +328,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     result.push([x, y]);
                 }
                 return result;
-            };
-            Mixin.prototype.mercs2MercRotation = function (xys) {
-                var center = xys[0];
-                var nesw = xys.slice(1, 5);
-                var neswDelta = nesw.map(function (val) { return [
-                    val[0] - center[0],
-                    val[1] - center[1]
-                ]; });
-                var normal = [
-                    [0.0, 1.0],
-                    [1.0, 0.0],
-                    [0.0, -1.0],
-                    [-1.0, 0.0]
-                ];
-                var cosx = 0;
-                var sinx = 0;
-                for (var i = 0; i < 4; i++) {
-                    var delta = neswDelta[i];
-                    var norm = normal[i];
-                    var abs = Math.sqrt(Math.pow(delta[0], 2) + Math.pow(delta[1], 2));
-                    var outer = delta[0] * norm[1] - delta[1] * norm[0];
-                    var inner = Math.acos((delta[0] * norm[0] + delta[1] * norm[1]) / abs);
-                    var theta = outer > 0.0 ? -1.0 * inner : inner;
-                    cosx += Math.cos(theta);
-                    sinx += Math.sin(theta);
-                }
-                return Math.atan2(sinx, cosx);
             };
             Mixin.prototype.resolvePois = function (pois) {
                 return __awaiter(this, void 0, void 0, function () {
@@ -505,10 +465,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 }
                 return (radius * const_ex_1.MERC_MAX) / 128 / Math.pow(2, zoom);
             };
-            Mixin.prototype.viewPoint2SysCoords = function (center, zoom, rotate, size) {
-                return this.mercViewPoint2Mercs(center, zoom, rotate, size);
+            Mixin.prototype.viewpoint2SysCoords = function (center, zoom, rotate, size) {
+                return this.mercViewpoint2Mercs(center, zoom, rotate, size);
             };
-            Mixin.prototype.mercViewPoint2Mercs = function (center, zoom, rotate, size) {
+            Mixin.prototype.mercViewpoint2Mercs = function (center, zoom, rotate, size) {
                 if (center === undefined) {
                     center = this._map.getView().getCenter();
                 }
@@ -524,10 +484,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 cross.push(size);
                 return cross;
             };
-            Mixin.prototype.sysCoords2ViewPoint = function (sysCoords) {
-                return this.mercs2MercViewPoint(sysCoords);
+            Mixin.prototype.sysCoords2Viewpoint = function (sysCoords) {
+                return this.mercs2MercViewpoint(sysCoords);
             };
-            Mixin.prototype.mercs2MercViewPoint = function (mercs) {
+            Mixin.prototype.mercs2MercViewpoint = function (mercs) {
                 var center = mercs[0];
                 var size = mercs[5];
                 var nesw = mercs.slice(1, 5);

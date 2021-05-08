@@ -185,7 +185,7 @@ export class HistMap_tin extends HistMap {
     );
   }
 
-  mapSize2MercSize(callback: any) {
+  setupMapParameter(callback: any) {
     const xy = [this.width / 2, this.height / 2];
     this.xy2MercAsync_returnLayer(xy)
       .then((results: any) => {
@@ -304,8 +304,8 @@ export class HistMap_tin extends HistMap {
   }
 
   // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-  viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]> {
-    const sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
+  viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]> {
+    const sysCoords = this.viewpoint2SysCoords(center, zoom, rotate, size);
     const cross = this.sysCoords2Xys(sysCoords);
 
     const promise = this.xy2MercAsync_returnLayer(cross[0]);
@@ -323,7 +323,7 @@ export class HistMap_tin extends HistMap {
     });
   }
 
-  mercs2ViewPointAsync(mercs: Coordinate[], asMerc = false): Promise<[Coordinate, number, number]> {
+  mercs2ViewpointAsync(mercs: Coordinate[], asMerc = false): Promise<[Coordinate, number, number]> {
     let promises;
     if (asMerc) {
       promises = Promise.resolve(mercs);
@@ -345,7 +345,7 @@ export class HistMap_tin extends HistMap {
       if (!asMerc) {
         xys = this.xys2SysCoords(xys);
       }
-      return this.sysCoords2ViewPoint(xys);
+      return this.sysCoords2Viewpoint(xys);
     });
   }
 }

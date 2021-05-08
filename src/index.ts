@@ -403,7 +403,7 @@ export class MaplatApp extends EventTarget {
     this.setMapOnOff();
     this.setMouseCursor();
     this.setBackMapBehavior();
-    this.raiseChangeViewPoint();
+    this.raiseChangeViewpoint();
   }
   // Async initializer 10: Handle initial map
   async setInitialMap(cache: (HistMap | NowMap)[]) {
@@ -615,15 +615,15 @@ export class MaplatApp extends EventTarget {
     this.mapObject.on("postrender", backMapMove);
   }
   // Async initializer 16: Handle back map's behavior
-  raiseChangeViewPoint() {
+  raiseChangeViewpoint() {
     this.mapObject.on("postrender", (_evt: any) => {
       const view = this.mapObject.getView();
       const center = view.getCenter();
       const zoom = view.getDecimalZoom();
       const rotation = normalizeDegree((view.getRotation() * 180) / Math.PI);
       (this.from as HistMap | NowMap)
-        .viewPoint2MercsAsync()
-        .then((mercs: any) => (this.mercSrc as NowMap).mercs2ViewPointAsync(mercs))
+        .viewpoint2MercsAsync()
+        .then((mercs: any) => (this.mercSrc as NowMap).mercs2ViewpointAsync(mercs))
         .then((size: any) => {
           if (
             this.mobileMapMoveBuffer &&
@@ -1354,7 +1354,7 @@ export class MaplatApp extends EventTarget {
   }
   convertParametersFromCurrent(to: any, callback: any) {
     const view = this.mapObject.getView();
-    let fromPromise = (this.from as HistMap | NowMap).viewPoint2MercsAsync();
+    let fromPromise = (this.from as HistMap | NowMap).viewpoint2MercsAsync();
     const current = recursiveRound(
       [view.getCenter(), view.getZoom(), view.getRotation()],
       10
@@ -1405,7 +1405,7 @@ export class MaplatApp extends EventTarget {
         this.mercBuffer.mercs = mercs;
         // @ts-expect-error ts-migrate(7053)
         this.logger.debug(`Mercs: ${mercs}`);
-        let toPromise = to.mercs2ViewPointAsync(mercs);
+        let toPromise = to.mercs2ViewpointAsync(mercs);
         const key = to.mapID;
         if (this.mercBuffer.buffer[key]) {
           // @ts-expect-error ts-migrate(7053)

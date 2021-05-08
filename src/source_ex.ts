@@ -210,9 +210,9 @@ export async function mapSourceFactory(options: any, commonOptions: any) {
             const obj = await HistMap_tin.createAsync(options);
             try {
               await obj.initialWait;
-              obj.mapSize2MercSize(resolve);
+              obj.setupMapParameter(resolve);
             } catch (e) {
-              obj.mapSize2MercSize(resolve);
+              obj.setupMapParameter(resolve);
             }
           } catch (e) {
             reject(e);

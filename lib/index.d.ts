@@ -107,7 +107,7 @@ export declare class MaplatApp extends EventTarget {
     setMapOnOff(): void;
     setMouseCursor(): void;
     setBackMapBehavior(): void;
-    raiseChangeViewPoint(): void;
+    raiseChangeViewpoint(): void;
     currentMapInfo(): any;
     mapInfo(mapID: string): any;
     setMarker(data: any): Promise<void>;

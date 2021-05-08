@@ -226,7 +226,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 });
             });
         };
-        HistMap_tin.prototype.mapSize2MercSize = function (callback) {
+        HistMap_tin.prototype.setupMapParameter = function (callback) {
             var _this = this;
             var xy = [this.width / 2, this.height / 2];
             this.xy2MercAsync_returnLayer(xy)
@@ -332,9 +332,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         HistMap_tin.prototype.xy2MercAsync = function (xy) {
             return this.xy2MercAsync_returnLayer(xy).then(function (ret) { return ret[1]; });
         };
-        HistMap_tin.prototype.viewPoint2MercsAsync = function (center, zoom, rotate, size) {
+        HistMap_tin.prototype.viewpoint2MercsAsync = function (center, zoom, rotate, size) {
             var _this = this;
-            var sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
+            var sysCoords = this.viewpoint2SysCoords(center, zoom, rotate, size);
             var cross = this.sysCoords2Xys(sysCoords);
             var promise = this.xy2MercAsync_returnLayer(cross[0]);
             return promise.then(function (results) {
@@ -352,7 +352,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 });
             });
         };
-        HistMap_tin.prototype.mercs2ViewPointAsync = function (mercs, asMerc) {
+        HistMap_tin.prototype.mercs2ViewpointAsync = function (mercs, asMerc) {
             var _this = this;
             if (asMerc === void 0) { asMerc = false; }
             var promises;
@@ -377,7 +377,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 if (!asMerc) {
                     xys = _this.xys2SysCoords(xys);
                 }
-                return _this.sysCoords2ViewPoint(xys);
+                return _this.sysCoords2Viewpoint(xys);
             });
         };
         return HistMap_tin;

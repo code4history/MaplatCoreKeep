@@ -124,15 +124,15 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       if (cond.x !== undefined && cond.y != undefined) {
         xy = [cond.x, cond.y];
       }
-      this.viewPoint2MercsAsync()
-        .then(mercs => this.mercs2MercViewPoint(mercs))
-        .then(mercViewPoint => {
-          const mercs = this.mercsFromGivenMercZoom(
-            merc || mercViewPoint[0],
-            mercZoom || mercViewPoint[1],
-            direction != null ? direction : mercViewPoint[2]
+      this.viewpoint2MercsAsync()
+        .then(mercs => this.mercs2MercViewpoint(mercs))
+        .then(mercViewpoint => {
+          const mercs = this.mercViewpoint2Mercs(
+            merc || mercViewpoint[0],
+            mercZoom || mercViewpoint[1] || 17,
+            direction != null ? direction : mercViewpoint[2]
           );
-          this.mercs2ViewPointAsync(mercs).then(size => {
+          this.mercs2ViewpointAsync(mercs).then(size => {
             if (merc != null) {
               view?.setCenter(size[0]);
             } else if (xy != null) {
@@ -220,26 +220,6 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
       this.setGPSMarkerAsync(position, ignoreMove).then(() => {});
     }
 
-    // メルカトルの中心座標とメルカトルズームから、メルカトル5座標値に変換
-    mercsFromGivenMercZoom(
-      center: Coordinate,
-      mercZoom?: number,
-      direction?: number
-    ): Coordinate[] {
-      if (mercZoom === undefined) {
-        mercZoom = 17;
-      }
-      const size = this._map!.getSize();
-      const pixel = Math.floor(Math.min(size![0], size![1]) / 4);
-
-      const delta = (pixel * MERC_MAX) / 128 / Math.pow(2, mercZoom);
-      const crossDelta = this.rotateMatrix(MERC_CROSSMATRIX, direction);
-      return crossDelta.map(xy => [
-        xy[0] * delta + center[0],
-        xy[1] * delta + center[1]
-      ]);
-    }
-
     mercsFromGPSValue(lnglat: Coordinate, acc: number) {
       const merc = transform(lnglat, "EPSG:4326", "EPSG:3857");
       const latrad = (lnglat[1] * Math.PI) / 180;
@@ -263,52 +243,6 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
         result.push([x, y]);
       }
       return result;
-    }
-
-    // メルカトル5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
-    /*mercs2SizeAsync(mercs: Coordinate[], asMerc = false) {
-      const promises = asMerc
-        ? Promise.resolve(mercs)
-        : Promise.all(
-            mercs.map((merc: Coordinate, index: number) => {
-              if (index === 5) return merc;
-              return this.merc2SysCoordAsync(merc).then(val => val!);
-            })
-          );
-      return promises.then(sysCoords => this.sysCoords2ViewPoint(sysCoords as Coordinate[]));
-    }*/
-
-    mercs2MercRotation(xys: Coordinate[]) {
-      const center = xys[0];
-      const nesw = xys.slice(1, 5);
-      const neswDelta = nesw.map(val => [
-        val[0] - center[0],
-        val[1] - center[1]
-      ]);
-      const normal = [
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [0.0, -1.0],
-        [-1.0, 0.0]
-      ];
-      // var abss = 0;
-      let cosx = 0;
-      let sinx = 0;
-      for (let i = 0; i < 4; i++) {
-        const delta = neswDelta[i];
-        const norm = normal[i];
-        const abs = Math.sqrt(Math.pow(delta[0], 2) + Math.pow(delta[1], 2));
-        // abss += abs;
-        const outer = delta[0] * norm[1] - delta[1] * norm[0];
-        const inner = Math.acos(
-          (delta[0] * norm[0] + delta[1] * norm[1]) / abs
-        );
-        const theta = outer > 0.0 ? -1.0 * inner : inner;
-        cosx += Math.cos(theta);
-        sinx += Math.sin(theta);
-      }
-      // var scale = abss / 4.0;
-      return Math.atan2(sinx, cosx);
     }
 
     async resolvePois(pois?: any) {
@@ -416,8 +350,8 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     abstract xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract xy2SysCoord(xy: Coordinate): Coordinate;
     abstract sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-    abstract viewPoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
-    abstract mercs2ViewPointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
+    abstract viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
+    abstract mercs2ViewpointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
     abstract mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
 
     merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
@@ -443,11 +377,11 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-    viewPoint2SysCoords(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
-      return this.mercViewPoint2Mercs(center, zoom, rotate, size);
+    viewpoint2SysCoords(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
+      return this.mercViewpoint2Mercs(center, zoom, rotate, size);
     }
 
-    mercViewPoint2Mercs(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
+    mercViewpoint2Mercs(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
       if (center === undefined) {
         center = this._map!.getView().getCenter();
       }
@@ -465,12 +399,12 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 地図座標5地点情報から地図サイズ情報（中心座標、サイズ、回転）を得る
-    sysCoords2ViewPoint(sysCoords: Coordinate[]): [Coordinate, number, number] {
-      return this.mercs2MercViewPoint(sysCoords);
+    sysCoords2Viewpoint(sysCoords: Coordinate[]): [Coordinate, number, number] {
+      return this.mercs2MercViewpoint(sysCoords);
     }
 
     // メルカトル5地点情報からメルカトル地図でのサイズ情報（中心座標、サイズ、回転）を得る
-    mercs2MercViewPoint(mercs: Coordinate[]): [Coordinate, number, number] {
+    mercs2MercViewpoint(mercs: Coordinate[]): [Coordinate, number, number] {
       const center = mercs[0];
       let size = mercs[5];
       const nesw = mercs.slice(1, 5);

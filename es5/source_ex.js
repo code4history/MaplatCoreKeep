@@ -302,11 +302,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                                                 return [4, obj.initialWait];
                                             case 15:
                                                 _c.sent();
-                                                obj.mapSize2MercSize(resolve);
+                                                obj.setupMapParameter(resolve);
                                                 return [3, 17];
                                             case 16:
                                                 e_3 = _c.sent();
-                                                obj.mapSize2MercSize(resolve);
+                                                obj.setupMapParameter(resolve);
                                                 return [3, 17];
                                             case 17: return [3, 19];
                                             case 18:

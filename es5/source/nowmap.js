@@ -136,16 +136,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         NowMap.prototype.sysCoord2Xy = function (sysCoord) {
             return sysCoord;
         };
-        NowMap.prototype.viewPoint2MercsAsync = function (center, zoom, rotate, size) {
-            var sysCoords = this.viewPoint2SysCoords(center, zoom, rotate, size);
+        NowMap.prototype.viewpoint2MercsAsync = function (center, zoom, rotate, size) {
+            var sysCoords = this.viewpoint2SysCoords(center, zoom, rotate, size);
             var xys = this.sysCoords2Xys(sysCoords);
             return this.xys2MercsAsync(xys);
         };
-        NowMap.prototype.mercs2ViewPointAsync = function (mercs) {
+        NowMap.prototype.mercs2ViewpointAsync = function (mercs) {
             var _this = this;
             return this.mercs2XysAsync(mercs).then(function (xys) {
                 var sysCoords = _this.xys2SysCoords(xys);
-                return _this.sysCoords2ViewPoint(sysCoords);
+                return _this.sysCoords2Viewpoint(sysCoords);
             });
         };
         NowMap.prototype.mercs2SysCoordsAsync_multiLayer = function (mercs) {
