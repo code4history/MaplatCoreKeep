@@ -351,7 +351,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     abstract xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract xy2SysCoord(xy: Coordinate): Coordinate;
     abstract sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-    abstract viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
+    abstract viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size): Promise<Coordinate[]>;
     abstract mercs2ViewpointAsync(mercs: Coordinate[]): Promise<ViewpointArray>;
     abstract mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
 
@@ -378,11 +378,11 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-    viewpoint2SysCoords(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Coordinate[] {
-      return this.mercViewpoint2Mercs([center, zoom, rotate], size);
+    viewpoint2SysCoords(viewpoint?: ViewpointArray, size?: Size): Coordinate[] {
+      return this.mercViewpoint2Mercs(viewpoint, size);
     }
 
-    mercViewpoint2Mercs(viewpoint: ViewpointArray, size?: Size): Coordinate[] {
+    mercViewpoint2Mercs(viewpoint?: ViewpointArray, size?: Size): Coordinate[] {
       let center = viewpoint ? viewpoint[0] : undefined;
       const zoom = viewpoint ? viewpoint[1] : undefined;
       const rotate = viewpoint ? viewpoint[2] : undefined;

@@ -19,7 +19,7 @@ import { NowMap } from "./source/nowmap";
 import { TmsMap } from "./source/tmsmap";
 import { MapboxMap } from "./source/mapboxmap";
 import { mapSourceFactory } from "./source_ex";
-import { META_KEYS } from "./source/mixin";
+import {META_KEYS, ViewpointArray} from "./source/mixin";
 import { recursiveRound } from "./math_ex";
 import locales from "./freeze_locales";
 import {
@@ -75,7 +75,7 @@ export class MaplatApp extends EventTarget {
   restoreSession = false;
   enableCache: false;
   stateBuffer: Restore = {};
-  mobileMapMoveBuffer?: [Coordinate, number, number];
+  mobileMapMoveBuffer?: ViewpointArray;
   overlay = true;
   waitReady: Promise<void>;
   changeMapSeq?: Promise<void>;
@@ -623,30 +623,30 @@ export class MaplatApp extends EventTarget {
       const rotation = normalizeDegree((view.getRotation() * 180) / Math.PI);
       (this.from as HistMap | NowMap)
         .viewpoint2MercsAsync()
-        .then((mercs: any) => (this.mercSrc as NowMap).mercs2ViewpointAsync(mercs))
-        .then((size: any) => {
+        .then(mercs => (this.mercSrc as NowMap).mercs2ViewpointAsync(mercs))
+        .then(viewpoint => {
           if (
             this.mobileMapMoveBuffer &&
-            this.mobileMapMoveBuffer[0][0] == size[0][0] &&
-            this.mobileMapMoveBuffer[0][1] == size[0][1] &&
-            this.mobileMapMoveBuffer[1] == size[1] &&
-            this.mobileMapMoveBuffer[2] == size[2]
+            this.mobileMapMoveBuffer[0]![0] == viewpoint[0]![0] &&
+            this.mobileMapMoveBuffer[0]![1] == viewpoint[0]![1] &&
+            this.mobileMapMoveBuffer[1] == viewpoint[1] &&
+            this.mobileMapMoveBuffer[2] == viewpoint[2]
           ) {
             return;
           }
-          this.mobileMapMoveBuffer = size;
-          const ll = transform(size[0], "EPSG:3857", "EPSG:4326");
-          const direction = normalizeDegree((size[2] * 180) / Math.PI);
+          this.mobileMapMoveBuffer = viewpoint;
+          const ll = transform(viewpoint[0]!, "EPSG:3857", "EPSG:4326");
+          const direction = normalizeDegree((viewpoint[2]! * 180) / Math.PI);
           this.dispatchEvent(
             new CustomEvent("changeViewpoint", {
               x: center[0],
               y: center[1],
               longitude: ll[0],
               latitude: ll[1],
-              mercator_x: size[0][0],
-              mercator_y: size[0][1],
+              mercator_x: viewpoint[0]![0],
+              mercator_y: viewpoint[0]![1],
               zoom,
-              mercZoom: size[1],
+              mercZoom: viewpoint[1],
               direction,
               rotation
             })

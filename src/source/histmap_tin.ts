@@ -305,8 +305,8 @@ export class HistMap_tin extends HistMap {
   }
 
   // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-  viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]> {
-    const sysCoords = this.viewpoint2SysCoords(center, zoom, rotate, size);
+  viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size): Promise<Coordinate[]> {
+    const sysCoords = this.viewpoint2SysCoords(viewpoint, size);
     const cross = this.sysCoords2Xys(sysCoords);
 
     const promise = this.xy2MercAsync_returnLayer(cross[0]);

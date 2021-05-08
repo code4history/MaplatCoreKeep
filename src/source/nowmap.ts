@@ -7,7 +7,7 @@ import lineIntersect from "@turf/line-intersect";
 import {
   setCustomFunction,
   setCustomInitialize,
-  setupTileLoadFunction
+  setupTileLoadFunction, ViewpointArray
 } from "./mixin";
 import { Coordinate } from "ol/coordinate";
 import {Size} from "ol/size";
@@ -86,8 +86,8 @@ export class NowMap extends setCustomFunction(OSM) {
     return sysCoord;
   }
 
-  viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size) {
-    const sysCoords = this.viewpoint2SysCoords(center, zoom, rotate, size);
+  viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size) {
+    const sysCoords = this.viewpoint2SysCoords(viewpoint, size);
     const xys = this.sysCoords2Xys(sysCoords);
     return this.xys2MercsAsync(xys);
   }
