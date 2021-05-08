@@ -6,6 +6,7 @@ import EventTarget from "ol/events/Target";
 import { MaplatMap } from "./map_ex";
 import { HistMap } from "./source/histmap";
 import { NowMap } from "./source/nowmap";
+import { ViewpointArray } from "./source/mixin";
 import { Coordinate } from "ol/coordinate";
 interface AppData {
     sources: string[];
@@ -50,7 +51,7 @@ export declare class MaplatApp extends EventTarget {
     restoreSession: boolean;
     enableCache: false;
     stateBuffer: Restore;
-    mobileMapMoveBuffer?: [Coordinate, number, number];
+    mobileMapMoveBuffer?: ViewpointArray;
     overlay: boolean;
     waitReady: Promise<void>;
     changeMapSeq?: Promise<void>;

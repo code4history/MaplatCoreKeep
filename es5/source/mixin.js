@@ -222,22 +222,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 this.viewpoint2MercsAsync()
                     .then(function (mercs) { return _this.mercs2MercViewpoint(mercs); })
                     .then(function (mercViewpoint) {
-                    var mercs = _this.mercViewpoint2Mercs(merc || mercViewpoint[0], mercZoom || mercViewpoint[1] || 17, direction != null ? direction : mercViewpoint[2]);
-                    _this.mercs2ViewpointAsync(mercs).then(function (size) {
+                    var mercs = _this.mercViewpoint2Mercs([
+                        merc || mercViewpoint[0],
+                        mercZoom || mercViewpoint[1] || 17,
+                        direction !== null ? direction : mercViewpoint[2]
+                    ]);
+                    _this.mercs2ViewpointAsync(mercs).then(function (viewpoint) {
                         if (merc != null) {
-                            view === null || view === void 0 ? void 0 : view.setCenter(size[0]);
+                            view === null || view === void 0 ? void 0 : view.setCenter(viewpoint[0]);
                         }
                         else if (xy != null) {
                             view === null || view === void 0 ? void 0 : view.setCenter(xy);
                         }
                         if (mercZoom != null) {
-                            view === null || view === void 0 ? void 0 : view.setZoom(size[1]);
+                            view === null || view === void 0 ? void 0 : view.setZoom(viewpoint[1]);
                         }
                         else if (zoom != null) {
                             view === null || view === void 0 ? void 0 : view.setZoom(zoom);
                         }
                         if (direction != null) {
-                            view === null || view === void 0 ? void 0 : view.setRotation(size[2]);
+                            view === null || view === void 0 ? void 0 : view.setRotation(viewpoint[2]);
                         }
                         else if (rotation != null) {
                             view === null || view === void 0 ? void 0 : view.setRotation(rotation);
@@ -274,17 +278,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     });
                 }
                 var mercs = this.mercsFromGPSValue(position.lnglat, position.acc);
-                return this.mercs2SysCoordsAsync_multiLayer(mercs)
+                return this.mercs2SysCoordsAsync_multiLayer([mercs])
                     .then(function (results) {
                     var hide = !results[0];
                     var xys = hide ? results[1] : results[0];
                     var sub = !hide ? results[1] : null;
                     var pos = { xy: xys[0] };
-                    if (!_this.insideCheckHistMapCoords(xys[0])) {
+                    if (!_this.insideCheckHistMapCoords(xys[0][0])) {
                         map === null || map === void 0 ? void 0 : map.handleGPS(false, true);
                         return false;
                     }
-                    var news = xys.slice(1);
+                    var news = xys[0].slice(1);
                     pos.rad = news.reduce(function (prev, curr, index) {
                         var ret = prev +
                             Math.sqrt(Math.pow(curr[0] - pos.xy[0], 2) +
@@ -295,7 +299,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                         view === null || view === void 0 ? void 0 : view.setCenter(pos.xy);
                     map === null || map === void 0 ? void 0 : map.setGPSPosition(pos, hide ? "hide" : null);
                     if (sub) {
-                        map === null || map === void 0 ? void 0 : map.setGPSPosition({ xy: sub[0] }, "sub");
+                        map === null || map === void 0 ? void 0 : map.setGPSPosition({ xy: sub[0][0] }, "sub");
                     }
                     return true;
                 })
@@ -465,10 +469,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 }
                 return (radius * const_ex_1.MERC_MAX) / 128 / Math.pow(2, zoom);
             };
-            Mixin.prototype.viewpoint2SysCoords = function (center, zoom, rotate, size) {
-                return this.mercViewpoint2Mercs(center, zoom, rotate, size);
+            Mixin.prototype.viewpoint2SysCoords = function (viewpoint, size) {
+                return this.mercViewpoint2Mercs(viewpoint, size);
             };
-            Mixin.prototype.mercViewpoint2Mercs = function (center, zoom, rotate, size) {
+            Mixin.prototype.mercViewpoint2Mercs = function (viewpoint, size) {
+                var center = viewpoint ? viewpoint[0] : undefined;
+                var zoom = viewpoint ? viewpoint[1] : undefined;
+                var rotate = viewpoint ? viewpoint[2] : undefined;
                 if (center === undefined) {
                     center = this._map.getView().getCenter();
                 }
@@ -481,16 +488,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     xy[0] * radius + center[0],
                     xy[1] * radius + center[1]
                 ]; });
-                cross.push(size);
-                return cross;
+                return [cross, size];
             };
             Mixin.prototype.sysCoords2Viewpoint = function (sysCoords) {
                 return this.mercs2MercViewpoint(sysCoords);
             };
             Mixin.prototype.mercs2MercViewpoint = function (mercs) {
-                var center = mercs[0];
-                var size = mercs[5];
-                var nesw = mercs.slice(1, 5);
+                var center = mercs[0][0];
+                var size = mercs[1];
+                var nesw = mercs[0].slice(1, 5);
                 var neswDelta = nesw.map(function (val) { return [
                     val[0] - center[0],
                     val[1] - center[1]
@@ -525,19 +531,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             };
             Mixin.prototype.sysCoords2Xys = function (sysCoords) {
                 var _this = this;
-                return sysCoords.map(function (sysCoord, index) { return index === 5 ? sysCoord : _this.sysCoord2Xy(sysCoord); });
+                return [sysCoords[0].map(function (sysCoord) { return _this.sysCoord2Xy(sysCoord); }), sysCoords[1]];
             };
             Mixin.prototype.xys2SysCoords = function (xys) {
                 var _this = this;
-                return xys.map(function (xy, index) { return index === 5 ? xy : _this.xy2SysCoord(xy); });
+                return [xys[0].map(function (xy) { return _this.xy2SysCoord(xy); }), xys[1]];
             };
             Mixin.prototype.mercs2XysAsync = function (mercs) {
                 var _this = this;
-                return Promise.all(mercs.map(function (merc, index) { return index === 5 ? Promise.resolve(merc) : _this.merc2XyAsync(merc); }));
+                return Promise.all(mercs[0].map(function (merc) { return _this.merc2XyAsync(merc); })).then(function (xys) { return [xys, mercs[1]]; });
             };
             Mixin.prototype.xys2MercsAsync = function (xys) {
                 var _this = this;
-                return Promise.all(xys.map(function (xy, index) { return index === 5 ? Promise.resolve(xy) : _this.xy2MercAsync(xy); }));
+                return Promise.all(xys[0].map(function (xy) { return _this.xy2MercAsync(xy); })).then(function (mercs) { return [mercs, xys[1]]; });
             };
             return Mixin;
         }(Base));

@@ -4,7 +4,7 @@ import { Coordinate } from "ol/coordinate";
 import { Feature, Polygon } from "@turf/turf";
 import { Size } from "ol/size";
 declare type Constructor<T = {}> = new (...args: any[]) => T;
-declare type Condition = {
+declare type ViewpointObject = {
     x?: number;
     y?: number;
     latitude?: number;
@@ -14,6 +14,11 @@ declare type Condition = {
     direction?: number;
     rotation?: number;
 };
+export declare type ViewpointArray = [Coordinate?, number?, number?];
+export declare type CrossCoordinatesArray = [
+    Coordinate[],
+    Size?
+];
 export declare function setCustomFunction<TBase extends Constructor>(Base: TBase): {
     new (...args: any[]): {
         weiwudi?: Weiwudi | undefined;
@@ -43,8 +48,8 @@ export declare function setCustomFunction<TBase extends Constructor>(Base: TBase
         cancelTileCacheAsync(): Promise<void>;
         clearTileCacheAsync(): Promise<void>;
         getMap(): MaplatMap | undefined;
-        setViewpointRadian(cond: Condition): void;
-        setViewpoint(cond: Condition): void;
+        setViewpointRadian(cond: ViewpointObject): void;
+        setViewpoint(cond: ViewpointObject): void;
         goHome(): void;
         setGPSMarkerAsync(position: any, ignoreMove?: boolean): Promise<unknown>;
         setGPSMarker(position: any, ignoreMove?: boolean): void;
@@ -64,21 +69,21 @@ export declare function setCustomFunction<TBase extends Constructor>(Base: TBase
         xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
         xy2SysCoord(xy: Coordinate): Coordinate;
         sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-        viewpoint2MercsAsync(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Promise<Coordinate[]>;
-        mercs2ViewpointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
-        mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
+        viewpoint2MercsAsync(viewpoint?: ViewpointArray | undefined, size?: Size | undefined): Promise<CrossCoordinatesArray>;
+        mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray>;
+        mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]>;
         merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void>;
         merc2SysCoordAsync(merc: Coordinate): Promise<Coordinate>;
         sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate>;
         zoom2Radius(size: Size, zoom?: number | undefined): number;
-        viewpoint2SysCoords(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
-        mercViewpoint2Mercs(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
-        sysCoords2Viewpoint(sysCoords: Coordinate[]): [Coordinate, number, number];
-        mercs2MercViewpoint(mercs: Coordinate[]): [Coordinate, number, number];
-        sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[];
-        xys2SysCoords(xys: Coordinate[]): Coordinate[];
-        mercs2XysAsync(mercs: Coordinate[]): Promise<(Coordinate)[]>;
-        xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]>;
+        viewpoint2SysCoords(viewpoint?: ViewpointArray | undefined, size?: Size | undefined): CrossCoordinatesArray;
+        mercViewpoint2Mercs(viewpoint?: ViewpointArray | undefined, size?: Size | undefined): CrossCoordinatesArray;
+        sysCoords2Viewpoint(sysCoords: CrossCoordinatesArray): ViewpointArray;
+        mercs2MercViewpoint(mercs: CrossCoordinatesArray): ViewpointArray;
+        sysCoords2Xys(sysCoords: CrossCoordinatesArray): CrossCoordinatesArray;
+        xys2SysCoords(xys: CrossCoordinatesArray): CrossCoordinatesArray;
+        mercs2XysAsync(mercs: CrossCoordinatesArray): Promise<CrossCoordinatesArray>;
+        xys2MercsAsync(xys: CrossCoordinatesArray): Promise<CrossCoordinatesArray>;
     };
 } & TBase;
 export declare const META_KEYS: string[];

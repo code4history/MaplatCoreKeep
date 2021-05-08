@@ -282,7 +282,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         };
         HistMap_tin.prototype.mercs2SysCoordsAsync_multiLayer = function (mercs) {
             var _this = this;
-            var promises = this.merc2XyAsync_returnLayer(mercs[0]).then(function (results) {
+            var promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(function (results) {
                 var hide = false;
                 return Promise.all(results.map(function (result, i) {
                     if (!result) {
@@ -293,9 +293,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     var centerXy = result[1];
                     if (i !== 0 && !hide)
                         return Promise.resolve([centerXy]);
-                    return Promise.all(mercs.map(function (merc, j) {
-                        if (j === 5)
-                            return Promise.resolve(merc);
+                    return Promise.all(mercs[0].map(function (merc, j) {
                         if (j === 0)
                             return Promise.resolve(centerXy);
                         return _this.merc2XyAsync_specifyLayer(merc, index);
@@ -308,11 +306,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     if (!result) {
                         return;
                     }
-                    return result.map(function (xy, i) {
-                        if (i == 5)
-                            return xy;
-                        return _this.xy2SysCoord(xy);
-                    });
+                    return [result.map(function (xy) { return _this.xy2SysCoord(xy); }), mercs[1]];
                 });
             });
         };
@@ -332,52 +326,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         HistMap_tin.prototype.xy2MercAsync = function (xy) {
             return this.xy2MercAsync_returnLayer(xy).then(function (ret) { return ret[1]; });
         };
-        HistMap_tin.prototype.viewpoint2MercsAsync = function (center, zoom, rotate, size) {
+        HistMap_tin.prototype.viewpoint2MercsAsync = function (viewpoint, size) {
             var _this = this;
-            var sysCoords = this.viewpoint2SysCoords(center, zoom, rotate, size);
+            var sysCoords = this.viewpoint2SysCoords(viewpoint, size);
             var cross = this.sysCoords2Xys(sysCoords);
-            var promise = this.xy2MercAsync_returnLayer(cross[0]);
+            var promise = this.xy2MercAsync_returnLayer(cross[0][0]);
             return promise.then(function (results) {
                 var index = results[0];
                 var centerMerc = results[1];
-                var promises = cross.map(function (val, i) {
-                    if (i === 5)
-                        return val;
+                var promises = cross[0].map(function (val, i) {
                     if (i === 0)
                         return Promise.resolve(centerMerc);
                     return _this.xy2MercAsync_specifyLayer(val, index);
                 });
-                return Promise.all(promises).catch(function (err) {
-                    throw err;
-                });
+                return Promise.all(promises).then(function (mercs) { return [mercs, size]; });
             });
         };
-        HistMap_tin.prototype.mercs2ViewpointAsync = function (mercs, asMerc) {
+        HistMap_tin.prototype.mercs2ViewpointAsync = function (mercs) {
             var _this = this;
-            if (asMerc === void 0) { asMerc = false; }
-            var promises;
-            if (asMerc) {
-                promises = Promise.resolve(mercs);
-            }
-            else {
-                promises = this.merc2XyAsync_returnLayer(mercs[0]).then(function (results) {
-                    var result = results[0] || results[1];
-                    var index = result[0];
-                    var centerXy = result[1];
-                    return Promise.all(mercs.map(function (merc, i) {
-                        if (i === 5)
-                            return merc;
-                        if (i === 0)
-                            return centerXy;
-                        return _this.merc2XyAsync_specifyLayer(merc, index);
-                    }));
-                });
-            }
+            var promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(function (results) {
+                var result = results[0] || results[1];
+                var index = result[0];
+                var centerXy = result[1];
+                return Promise.all(mercs[0].map(function (merc, i) {
+                    if (i === 0)
+                        return centerXy;
+                    return _this.merc2XyAsync_specifyLayer(merc, index);
+                }));
+            });
             return promises.then(function (xys) {
-                if (!asMerc) {
-                    xys = _this.xys2SysCoords(xys);
-                }
-                return _this.sysCoords2Viewpoint(xys);
+                var sysCoords = _this.xys2SysCoords([xys, mercs[1]]);
+                return _this.sysCoords2Viewpoint(sysCoords);
             });
         };
         return HistMap_tin;

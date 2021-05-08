@@ -136,8 +136,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         NowMap.prototype.sysCoord2Xy = function (sysCoord) {
             return sysCoord;
         };
-        NowMap.prototype.viewpoint2MercsAsync = function (center, zoom, rotate, size) {
-            var sysCoords = this.viewpoint2SysCoords(center, zoom, rotate, size);
+        NowMap.prototype.viewpoint2MercsAsync = function (viewpoint, size) {
+            var sysCoords = this.viewpoint2SysCoords(viewpoint, size);
             var xys = this.sysCoords2Xys(sysCoords);
             return this.xys2MercsAsync(xys);
         };
@@ -150,11 +150,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         };
         NowMap.prototype.mercs2SysCoordsAsync_multiLayer = function (mercs) {
             var _this = this;
-            return Promise.all(mercs.map(function (merc, index) {
-                if (index === 5)
-                    return merc;
-                return _this.merc2SysCoordAsync(merc);
-            })).then(function (xys) { return [xys]; });
+            return Promise.all(mercs[0].map(function (merc) { return _this.merc2SysCoordAsync(merc); })).then(function (xys) { return [[xys, mercs[1]]]; });
         };
         return NowMap;
     }(mixin_1.setCustomFunction(source_1.OSM)));

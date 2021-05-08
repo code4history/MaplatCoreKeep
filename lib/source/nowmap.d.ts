@@ -1,5 +1,6 @@
 /// <reference path="../../src/types/weiwudi.d.ts" />
 import { OSM } from "ol/source";
+import { CrossCoordinatesArray, ViewpointArray } from "./mixin";
 import { Coordinate } from "ol/coordinate";
 import { Size } from "ol/size";
 declare const NowMap_base: {
@@ -70,21 +71,21 @@ declare const NowMap_base: {
         xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
         xy2SysCoord(xy: Coordinate): Coordinate;
         sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-        viewpoint2MercsAsync(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Promise<Coordinate[]>;
-        mercs2ViewpointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
-        mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
+        viewpoint2MercsAsync(viewpoint?: ViewpointArray | undefined, size?: Size | undefined): Promise<CrossCoordinatesArray>;
+        mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray>;
+        mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]>;
         merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<void | Coordinate>;
         merc2SysCoordAsync(merc: Coordinate): Promise<Coordinate>;
         sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate>;
         zoom2Radius(size: Size, zoom?: number | undefined): number;
-        viewpoint2SysCoords(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
-        mercViewpoint2Mercs(center?: Coordinate | undefined, zoom?: number | undefined, rotate?: number | undefined, size?: Size | undefined): Coordinate[];
-        sysCoords2Viewpoint(sysCoords: Coordinate[]): [Coordinate, number, number];
-        mercs2MercViewpoint(mercs: Coordinate[]): [Coordinate, number, number];
-        sysCoords2Xys(sysCoords: Coordinate[]): Coordinate[];
-        xys2SysCoords(xys: Coordinate[]): Coordinate[];
-        mercs2XysAsync(mercs: Coordinate[]): Promise<Coordinate[]>;
-        xys2MercsAsync(xys: Coordinate[]): Promise<Coordinate[]>;
+        viewpoint2SysCoords(viewpoint?: ViewpointArray | undefined, size?: Size | undefined): CrossCoordinatesArray;
+        mercViewpoint2Mercs(viewpoint?: ViewpointArray | undefined, size?: Size | undefined): CrossCoordinatesArray;
+        sysCoords2Viewpoint(sysCoords: CrossCoordinatesArray): ViewpointArray;
+        mercs2MercViewpoint(mercs: CrossCoordinatesArray): ViewpointArray;
+        sysCoords2Xys(sysCoords: CrossCoordinatesArray): CrossCoordinatesArray;
+        xys2SysCoords(xys: CrossCoordinatesArray): CrossCoordinatesArray;
+        mercs2XysAsync(mercs: CrossCoordinatesArray): Promise<CrossCoordinatesArray>;
+        xys2MercsAsync(xys: CrossCoordinatesArray): Promise<CrossCoordinatesArray>;
     };
 } & typeof OSM;
 export declare class NowMap extends NowMap_base {
@@ -99,8 +100,8 @@ export declare class NowMap extends NowMap_base {
     xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     xy2SysCoord(xy: Coordinate): Coordinate;
     sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-    viewpoint2MercsAsync(center?: Coordinate, zoom?: number, rotate?: number, size?: Size): Promise<Coordinate[]>;
-    mercs2ViewpointAsync(mercs: Coordinate[]): Promise<[Coordinate, number, number]>;
-    mercs2SysCoordsAsync_multiLayer(mercs: Coordinate[]): Promise<(Coordinate[] | undefined)[]>;
+    viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size): Promise<CrossCoordinatesArray>;
+    mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray>;
+    mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]>;
 }
 export {};

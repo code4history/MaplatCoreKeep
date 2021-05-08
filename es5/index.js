@@ -593,26 +593,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 _this.from
                     .viewpoint2MercsAsync()
                     .then(function (mercs) { return _this.mercSrc.mercs2ViewpointAsync(mercs); })
-                    .then(function (size) {
+                    .then(function (viewpoint) {
                     if (_this.mobileMapMoveBuffer &&
-                        _this.mobileMapMoveBuffer[0][0] == size[0][0] &&
-                        _this.mobileMapMoveBuffer[0][1] == size[0][1] &&
-                        _this.mobileMapMoveBuffer[1] == size[1] &&
-                        _this.mobileMapMoveBuffer[2] == size[2]) {
+                        _this.mobileMapMoveBuffer[0][0] == viewpoint[0][0] &&
+                        _this.mobileMapMoveBuffer[0][1] == viewpoint[0][1] &&
+                        _this.mobileMapMoveBuffer[1] == viewpoint[1] &&
+                        _this.mobileMapMoveBuffer[2] == viewpoint[2]) {
                         return;
                     }
-                    _this.mobileMapMoveBuffer = size;
-                    var ll = proj_1.transform(size[0], "EPSG:3857", "EPSG:4326");
-                    var direction = functions_1.normalizeDegree((size[2] * 180) / Math.PI);
+                    _this.mobileMapMoveBuffer = viewpoint;
+                    var ll = proj_1.transform(viewpoint[0], "EPSG:3857", "EPSG:4326");
+                    var direction = functions_1.normalizeDegree((viewpoint[2] * 180) / Math.PI);
                     _this.dispatchEvent(new customevent_1.default("changeViewpoint", {
                         x: center[0],
                         y: center[1],
                         longitude: ll[0],
                         latitude: ll[1],
-                        mercator_x: size[0][0],
-                        mercator_y: size[0][1],
+                        mercator_x: viewpoint[0][0],
+                        mercator_y: viewpoint[0][1],
                         zoom: zoom,
-                        mercZoom: size[1],
+                        mercZoom: viewpoint[1],
                         direction: direction,
                         rotation: rotation
                     }));
