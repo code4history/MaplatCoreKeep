@@ -192,7 +192,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
           const hide = !results[0];
           const xys = hide ? results[1]! : results[0]!;
           const sub = !hide ? results[1] : null;
-          const pos: any = { xy: xys[0] };
+          const pos: any = { xy: xys[0][0] };
           if (!this.insideCheckHistMapCoords(xys[0][0]!)) {
             map?.handleGPS(false, true);
             return false;
