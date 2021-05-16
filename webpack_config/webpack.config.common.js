@@ -10,6 +10,7 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require("terser-webpack-plugin");
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
   mode: 'production',
@@ -25,7 +26,8 @@ module.exports = {
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      template: "./public/index.html"
+      template: "./public/index.html",
+      scriptLoading: "blocking"
     }),
     new ForkTsCheckerWebpackPlugin({
       eslint: {
@@ -37,13 +39,13 @@ module.exports = {
     }),
     new MiniCssExtractPlugin({
       filename: "./assets/[name].css"
-    })
+    }),
+    new ESLintPlugin({})
   ],
 
   externals: [
     { mapboxgl: "mapboxgl" }
   ],
-
 
   resolve: {
     extensions: [".js", ".ts"],
@@ -51,15 +53,6 @@ module.exports = {
 
   module: {
     rules: [
-      {
-        enforce: "pre",
-        test: /\.(js|ts)?$/,
-        exclude: /node_modules/,
-        loader: "eslint-loader",
-        options: {
-          cache: true
-        }
-      },
       {
         test: /\.(js|ts)$/,
         exclude: /node_modules(?![/\\](@maplat[/\\]tin|weiwudi))/,
