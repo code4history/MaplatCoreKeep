@@ -63,7 +63,11 @@ export class HistMap_tin extends HistMap {
         const mercBounds = xyBounds.map((xy: any) => tin.transform(xy, false));
         const xyBoundsPolygon = polygon([xyBounds]);
         const mercBoundsPolygon = polygon([mercBounds]);
+        /* eslint-disable @typescript-eslint/ban-ts-comment */
+        // @ts-ignore
         tin.xyBounds = xyBoundsPolygon;
+        /* eslint-disable @typescript-eslint/ban-ts-comment */
+        // @ts-ignore
         tin.mercBounds = mercBoundsPolygon;
       });
     }

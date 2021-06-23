@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import i18n from "i18next";
 import i18nxhr from "i18next-xhr-backend";
 import CustomEvent from "./customevent";
