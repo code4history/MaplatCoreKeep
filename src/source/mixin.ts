@@ -199,15 +199,18 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
           }
           const news = xys[0].slice(1);
 
-          pos.rad = news.reduce((prev: number, curr: Coordinate, index: number) => {
-            const ret =
-              prev +
-              Math.sqrt(
-                Math.pow(curr[0] - pos.xy[0], 2) +
-                  Math.pow(curr[1] - pos.xy[1], 2)
-              );
-            return index === 3 ? ret / 4.0 : ret;
-          }, 0);
+          pos.rad = news.reduce(
+            (prev: number, curr: Coordinate, index: number) => {
+              const ret =
+                prev +
+                Math.sqrt(
+                  Math.pow(curr[0] - pos.xy[0], 2) +
+                    Math.pow(curr[1] - pos.xy[1], 2)
+                );
+              return index === 3 ? ret / 4.0 : ret;
+            },
+            0
+          );
           if (!ignoreMove) view?.setCenter(pos.xy);
           map?.setGPSPosition(pos, hide ? "hide" : null);
           if (sub) {
@@ -351,20 +354,35 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     // https://github.com/code4history/MaplatCore/issues/19
 
     abstract merc2XyAsync(merc: Coordinate): Promise<Coordinate>;
-    abstract merc2XyAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void>;
+    abstract merc2XyAsync_ignoreBackground(
+      merc: Coordinate
+    ): Promise<Coordinate | void>;
     abstract xy2MercAsync(xy: Coordinate): Promise<Coordinate>;
     abstract xy2SysCoord(xy: Coordinate): Coordinate;
     abstract sysCoord2Xy(sysCoord: Coordinate): Coordinate;
-    abstract viewpoint2MercsAsync(viewpoint?:ViewpointArray, size?: Size): Promise<CrossCoordinatesArray>;
-    abstract mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray>;
-    abstract mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]>;
+    abstract viewpoint2MercsAsync(
+      viewpoint?: ViewpointArray,
+      size?: Size
+    ): Promise<CrossCoordinatesArray>;
+    abstract mercs2ViewpointAsync(
+      mercs: CrossCoordinatesArray
+    ): Promise<ViewpointArray>;
+    abstract mercs2SysCoordsAsync_multiLayer(
+      mercs: CrossCoordinatesArray
+    ): Promise<(CrossCoordinatesArray | undefined)[]>;
 
-    merc2SysCoordAsync_ignoreBackground(merc: Coordinate): Promise<Coordinate | void> {
-      return this.merc2XyAsync_ignoreBackground(merc).then(xy => xy ? this.xy2SysCoord(xy) : undefined);
+    merc2SysCoordAsync_ignoreBackground(
+      merc: Coordinate
+    ): Promise<Coordinate | void> {
+      return this.merc2XyAsync_ignoreBackground(merc).then(xy =>
+        xy ? this.xy2SysCoord(xy) : undefined
+      );
     }
 
     merc2SysCoordAsync(merc: Coordinate): Promise<Coordinate> {
-      return this.merc2XyAsync(merc).then(xy => xy ? this.xy2SysCoord(xy) : xy);
+      return this.merc2XyAsync(merc).then(xy =>
+        xy ? this.xy2SysCoord(xy) : xy
+      );
     }
 
     sysCoord2MercAsync(sysCoord: Coordinate): Promise<Coordinate> {
@@ -382,11 +400,17 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     // 画面サイズと地図ズームから、地図面座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-    viewpoint2SysCoords(viewpoint?: ViewpointArray, size?: Size): CrossCoordinatesArray {
+    viewpoint2SysCoords(
+      viewpoint?: ViewpointArray,
+      size?: Size
+    ): CrossCoordinatesArray {
       return this.mercViewpoint2Mercs(viewpoint, size);
     }
 
-    mercViewpoint2Mercs(viewpoint?: ViewpointArray, size?: Size): CrossCoordinatesArray {
+    mercViewpoint2Mercs(
+      viewpoint?: ViewpointArray,
+      size?: Size
+    ): CrossCoordinatesArray {
       let center = viewpoint ? viewpoint[0] : undefined;
       const zoom = viewpoint ? viewpoint[1] : undefined;
       const rotate = viewpoint ? viewpoint[2] : undefined;
@@ -435,7 +459,7 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
         abss += abs;
         const outer = delta[0] * norm[1] - delta[1] * norm[0];
         const inner = Math.acos(
-            (delta[0] * norm[0] + delta[1] * norm[1]) / abs
+          (delta[0] * norm[0] + delta[1] * norm[1]) / abs
         );
         const theta = outer > 0.0 ? -1.0 * inner : inner;
         cosx += Math.cos(theta);
@@ -452,19 +476,28 @@ export function setCustomFunction<TBase extends Constructor>(Base: TBase) {
     }
 
     sysCoords2Xys(sysCoords: CrossCoordinatesArray): CrossCoordinatesArray {
-      return [sysCoords[0].map(sysCoord => this.sysCoord2Xy(sysCoord)), sysCoords[1]];
+      return [
+        sysCoords[0].map(sysCoord => this.sysCoord2Xy(sysCoord)),
+        sysCoords[1]
+      ];
     }
 
     xys2SysCoords(xys: CrossCoordinatesArray): CrossCoordinatesArray {
       return [xys[0].map(xy => this.xy2SysCoord(xy)), xys[1]];
     }
 
-    mercs2XysAsync(mercs: CrossCoordinatesArray): Promise<CrossCoordinatesArray> {
-      return Promise.all(mercs[0].map(merc => this.merc2XyAsync(merc))).then(xys => [xys, mercs[1]]);
+    mercs2XysAsync(
+      mercs: CrossCoordinatesArray
+    ): Promise<CrossCoordinatesArray> {
+      return Promise.all(mercs[0].map(merc => this.merc2XyAsync(merc))).then(
+        xys => [xys, mercs[1]]
+      );
     }
 
     xys2MercsAsync(xys: CrossCoordinatesArray): Promise<CrossCoordinatesArray> {
-      return Promise.all(xys[0].map(xy => this.xy2MercAsync(xy))).then(mercs => [mercs, xys[1]]);
+      return Promise.all(xys[0].map(xy => this.xy2MercAsync(xy))).then(
+        mercs => [mercs, xys[1]]
+      );
     }
   }
 

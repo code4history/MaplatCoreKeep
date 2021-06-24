@@ -8,10 +8,11 @@ import {
   CrossCoordinatesArray,
   setCustomFunction,
   setCustomInitialize,
-  setupTileLoadFunction, ViewpointArray
+  setupTileLoadFunction,
+  ViewpointArray
 } from "./mixin";
 import { Coordinate } from "ol/coordinate";
-import {Size} from "ol/size";
+import { Size } from "ol/size";
 
 export class NowMap extends setCustomFunction(OSM) {
   constructor(options: any = {}) {
@@ -100,7 +101,9 @@ export class NowMap extends setCustomFunction(OSM) {
     });
   }
 
-  mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]> {
+  mercs2SysCoordsAsync_multiLayer(
+    mercs: CrossCoordinatesArray
+  ): Promise<(CrossCoordinatesArray | undefined)[]> {
     return Promise.all(
       mercs[0].map(merc => this.merc2SysCoordAsync(merc))
     ).then(xys => [[xys, mercs[1]]]);

@@ -425,7 +425,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 else {
                     var xy = evt.coordinate;
                     _this.dispatchEvent(new customevent_1.default("clickMapXy", xy));
-                    _this.from.sysCoord2MercAsync(xy).then(function (merc) {
+                    _this.from
+                        .sysCoord2MercAsync(xy)
+                        .then(function (merc) {
                         _this.dispatchEvent(new customevent_1.default("clickMapMerc", merc));
                         var lnglat = proj_1.transform(merc, "EPSG:3857", "EPSG:4326");
                         _this.dispatchEvent(new customevent_1.default("clickMap", {
@@ -444,7 +446,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             var pointerCounter = {};
             var pointermoveHandler = function (xy) {
                 _this.dispatchEvent(new customevent_1.default("pointerMoveOnMapXy", xy));
-                _this.from.sysCoord2MercAsync(xy).then(function (merc) {
+                _this.from
+                    .sysCoord2MercAsync(xy)
+                    .then(function (merc) {
                     _this.dispatchEvent(new customevent_1.default("pointerMoveOnMapMerc", merc));
                     if (xyBuffer) {
                         var next = xyBuffer;

@@ -153,7 +153,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                             options.maxZoom = options.maxZoom || options.mercMaxZoom;
                             options.minZoom = options.minZoom || options.mercMinZoom;
                         }
-                        options.zoomRestriction = options.mercMaxZoom = options.mercMinZoom = undefined;
+                        options.zoomRestriction =
+                            options.mercMaxZoom =
+                                options.mercMinZoom =
+                                    undefined;
                         if (options.translator) {
                             options.url = options.translator(options.url);
                         }
@@ -234,7 +237,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                                                     options.maxZoom = options.maxZoom || options.mercMaxZoom;
                                                     options.minZoom = options.minZoom || options.mercMinZoom;
                                                 }
-                                                options.zoomRestriction = options.mercMaxZoom = options.mercMinZoom = undefined;
+                                                options.zoomRestriction =
+                                                    options.mercMaxZoom =
+                                                        options.mercMinZoom =
+                                                            undefined;
                                                 _c.label = 2;
                                             case 2:
                                                 _c.trys.push([2, 9, , 10]);

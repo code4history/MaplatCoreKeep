@@ -9,8 +9,8 @@ import { MERC_MAX } from "../const_ex";
 import { Coordinate } from "ol/coordinate";
 import { Feature, Polygon } from "@turf/turf";
 import { store2HistMap4Core } from "./store_handler";
-import {Size} from "ol/size";
-import {CrossCoordinatesArray, ViewpointArray} from "./mixin";
+import { Size } from "ol/size";
+import { CrossCoordinatesArray, ViewpointArray } from "./mixin";
 
 export class HistMap_tin extends HistMap {
   tins: Tin[];
@@ -111,7 +111,9 @@ export class HistMap_tin extends HistMap {
     }) as Promise<[number, Coordinate]>;
   }
 
-  merc2XyAsync_returnLayer(merc: Coordinate): Promise<([number, Coordinate] | undefined)[]> {
+  merc2XyAsync_returnLayer(
+    merc: Coordinate
+  ): Promise<([number, Coordinate] | undefined)[]> {
     return Promise.all(
       this.tins.map(
         (tin, index) =>
@@ -248,36 +250,39 @@ export class HistMap_tin extends HistMap {
       });
   }
 
-  mercs2SysCoordsAsync_multiLayer(mercs: CrossCoordinatesArray): Promise<(CrossCoordinatesArray | undefined)[]> {
-    const promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(results => {
-      let hide = false;
-      return Promise.all(
-        results.map((result, i) => {
-          if (!result) {
-            hide = true;
-            return;
-          }
-          const index = result[0];
-          const centerXy = result[1];
-          if (i !== 0 && !hide) return Promise.resolve([centerXy]);
-          return Promise.all(
+  mercs2SysCoordsAsync_multiLayer(
+    mercs: CrossCoordinatesArray
+  ): Promise<(CrossCoordinatesArray | undefined)[]> {
+    const promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(
+      results => {
+        let hide = false;
+        return Promise.all(
+          results.map((result, i) => {
+            if (!result) {
+              hide = true;
+              return;
+            }
+            const index = result[0];
+            const centerXy = result[1];
+            if (i !== 0 && !hide) return Promise.resolve([centerXy]);
+            return Promise.all(
               mercs[0].map((merc, j) => {
-              if (j === 0) return Promise.resolve(centerXy);
-              return this.merc2XyAsync_specifyLayer(merc, index);
-            })
-          );
-        })
-      );
-    });
-    return promises
-      .then(results =>
-        results.map(result => {
-          if (!result) {
-            return;
-          }
-          return [result.map(xy => this.xy2SysCoord(xy)), mercs[1]];
-        })
-      );
+                if (j === 0) return Promise.resolve(centerXy);
+                return this.merc2XyAsync_specifyLayer(merc, index);
+              })
+            );
+          })
+        );
+      }
+    );
+    return promises.then(results =>
+      results.map(result => {
+        if (!result) {
+          return;
+        }
+        return [result.map(xy => this.xy2SysCoord(xy)), mercs[1]];
+      })
+    );
   }
 
   // unifyTerm対応
@@ -285,7 +290,10 @@ export class HistMap_tin extends HistMap {
 
   // 複数レイヤがある場合、ignoreBackside === trueであれば、先頭レイヤ以外は無視する(先頭レイヤ内でなければ変換しない)
   // ignoreBackside === falseであれば、先頭レイヤで変換できなければ他レイヤでの結果を返す
-  merc2XyAsync_base(merc: Coordinate, ignoreBackground: boolean): Promise<Coordinate | void> {
+  merc2XyAsync_base(
+    merc: Coordinate,
+    ignoreBackground: boolean
+  ): Promise<Coordinate | void> {
     return this.merc2XyAsync_returnLayer(merc).then(ret => {
       if (ignoreBackground && !ret[0]) return;
       return !ret[0] ? ret[1]![1] : ret[0][1];
@@ -305,7 +313,10 @@ export class HistMap_tin extends HistMap {
   }
 
   // 画面サイズと地図ズームから、メルカトル座標上での5座標を取得する。zoom, rotate無指定の場合は自動取得
-  viewpoint2MercsAsync(viewpoint?: ViewpointArray, size?: Size): Promise<CrossCoordinatesArray> {
+  viewpoint2MercsAsync(
+    viewpoint?: ViewpointArray,
+    size?: Size
+  ): Promise<CrossCoordinatesArray> {
     const sysCoords = this.viewpoint2SysCoords(viewpoint, size);
     const cross = this.sysCoords2Xys(sysCoords);
 
@@ -322,17 +333,19 @@ export class HistMap_tin extends HistMap {
   }
 
   mercs2ViewpointAsync(mercs: CrossCoordinatesArray): Promise<ViewpointArray> {
-    const promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(results => {
-      const result = results[0] || results[1];
-      const index = result![0];
-      const centerXy = result![1];
-      return Promise.all(
-        mercs[0].map((merc, i) => {
-          if (i === 0) return centerXy;
-          return this.merc2XyAsync_specifyLayer(merc, index);
-        })
-      );
-    });
+    const promises = this.merc2XyAsync_returnLayer(mercs[0][0]).then(
+      results => {
+        const result = results[0] || results[1];
+        const index = result![0];
+        const centerXy = result![1];
+        return Promise.all(
+          mercs[0].map((merc, i) => {
+            if (i === 0) return centerXy;
+            return this.merc2XyAsync_specifyLayer(merc, index);
+          })
+        );
+      }
+    );
     return promises.then(xys => {
       const sysCoords = this.xys2SysCoords([xys, mercs[1]]);
       return this.sysCoords2Viewpoint(sysCoords);

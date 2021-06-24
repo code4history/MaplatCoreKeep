@@ -453,11 +453,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             };
             Mixin.prototype.merc2SysCoordAsync_ignoreBackground = function (merc) {
                 var _this = this;
-                return this.merc2XyAsync_ignoreBackground(merc).then(function (xy) { return xy ? _this.xy2SysCoord(xy) : undefined; });
+                return this.merc2XyAsync_ignoreBackground(merc).then(function (xy) {
+                    return xy ? _this.xy2SysCoord(xy) : undefined;
+                });
             };
             Mixin.prototype.merc2SysCoordAsync = function (merc) {
                 var _this = this;
-                return this.merc2XyAsync(merc).then(function (xy) { return xy ? _this.xy2SysCoord(xy) : xy; });
+                return this.merc2XyAsync(merc).then(function (xy) {
+                    return xy ? _this.xy2SysCoord(xy) : xy;
+                });
             };
             Mixin.prototype.sysCoord2MercAsync = function (sysCoord) {
                 var xy = this.sysCoord2Xy(sysCoord);
@@ -533,7 +537,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             };
             Mixin.prototype.sysCoords2Xys = function (sysCoords) {
                 var _this = this;
-                return [sysCoords[0].map(function (sysCoord) { return _this.sysCoord2Xy(sysCoord); }), sysCoords[1]];
+                return [
+                    sysCoords[0].map(function (sysCoord) { return _this.sysCoord2Xy(sysCoord); }),
+                    sysCoords[1]
+                ];
             };
             Mixin.prototype.xys2SysCoords = function (xys) {
                 var _this = this;

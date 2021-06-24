@@ -101,7 +101,10 @@ export async function mapSourceFactory(options: any, commonOptions: any) {
       options.maxZoom = options.maxZoom || options.mercMaxZoom;
       options.minZoom = options.minZoom || options.mercMinZoom;
     }
-    options.zoomRestriction = options.mercMaxZoom = options.mercMinZoom = undefined;
+    options.zoomRestriction =
+      options.mercMaxZoom =
+      options.mercMinZoom =
+        undefined;
     if (options.translator) {
       options.url = options.translator(options.url);
     }
@@ -167,7 +170,10 @@ export async function mapSourceFactory(options: any, commonOptions: any) {
               options.maxZoom = options.maxZoom || options.mercMaxZoom;
               options.minZoom = options.minZoom || options.mercMinZoom;
             }
-            options.zoomRestriction = options.mercMaxZoom = options.mercMinZoom = undefined;
+            options.zoomRestriction =
+              options.mercMaxZoom =
+              options.mercMinZoom =
+                undefined;
             try {
               if (!options.imageExtension) options.imageExtension = "jpg";
               if (options.mapID && !options.url && !options.urls) {

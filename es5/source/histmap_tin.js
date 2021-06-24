@@ -302,8 +302,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     }));
                 }));
             });
-            return promises
-                .then(function (results) {
+            return promises.then(function (results) {
                 return results.map(function (result) {
                     if (!result) {
                         return;

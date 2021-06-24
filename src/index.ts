@@ -20,7 +20,7 @@ import { NowMap } from "./source/nowmap";
 import { TmsMap } from "./source/tmsmap";
 import { MapboxMap } from "./source/mapboxmap";
 import { mapSourceFactory } from "./source_ex";
-import {META_KEYS, ViewpointArray} from "./source/mixin";
+import { META_KEYS, ViewpointArray } from "./source/mixin";
 import { recursiveRound } from "./math_ex";
 import locales from "./freeze_locales";
 import {
@@ -177,7 +177,8 @@ export class MaplatApp extends EventTarget {
       }
     }
     // Add UI HTML Element
-    const newElems = createElement(`<img id="center_circle" class="prevent-default" alt=""
+    const newElems =
+      createElement(`<img id="center_circle" class="prevent-default" alt=""
             style="position:absolute;top:50%;left:50%;margin-top:-10px;
             margin-left:-10px;" src="${redcircle}">`);
     for (let i = newElems.length - 1; i >= 0; i--) {
@@ -444,16 +445,18 @@ export class MaplatApp extends EventTarget {
       } else {
         const xy = evt.coordinate;
         this.dispatchEvent(new CustomEvent("clickMapXy", xy));
-        (this.from as NowMap | HistMap).sysCoord2MercAsync(xy).then((merc: any) => {
-          this.dispatchEvent(new CustomEvent("clickMapMerc", merc));
-          const lnglat = transform(merc, "EPSG:3857", "EPSG:4326");
-          this.dispatchEvent(
-            new CustomEvent("clickMap", {
-              longitude: lnglat[0],
-              latitude: lnglat[1]
-            })
-          );
-        });
+        (this.from as NowMap | HistMap)
+          .sysCoord2MercAsync(xy)
+          .then((merc: any) => {
+            this.dispatchEvent(new CustomEvent("clickMapMerc", merc));
+            const lnglat = transform(merc, "EPSG:3857", "EPSG:4326");
+            this.dispatchEvent(
+              new CustomEvent("clickMap", {
+                longitude: lnglat[0],
+                latitude: lnglat[1]
+              })
+            );
+          });
       }
     });
   }
@@ -465,16 +468,18 @@ export class MaplatApp extends EventTarget {
     const pointerCounter: any = {};
     const pointermoveHandler = (xy: any) => {
       this.dispatchEvent(new CustomEvent("pointerMoveOnMapXy", xy));
-      (this.from as HistMap | NowMap).sysCoord2MercAsync(xy).then((merc: any) => {
-        this.dispatchEvent(new CustomEvent("pointerMoveOnMapMerc", merc));
-        if (xyBuffer) {
-          const next = xyBuffer;
-          xyBuffer = false;
-          pointermoveHandler(next);
-        } else {
-          waiting = false;
-        }
-      });
+      (this.from as HistMap | NowMap)
+        .sysCoord2MercAsync(xy)
+        .then((merc: any) => {
+          this.dispatchEvent(new CustomEvent("pointerMoveOnMapMerc", merc));
+          if (xyBuffer) {
+            const next = xyBuffer;
+            xyBuffer = false;
+            pointermoveHandler(next);
+          } else {
+            waiting = false;
+          }
+        });
     };
     this.mapObject.on("pointermove", (evt: any) => {
       if (dragging) return;
@@ -566,14 +571,14 @@ export class MaplatApp extends EventTarget {
             if (feature.get("datum")) return feature;
           }
         );
-        (this.mapDivDocument!.querySelector(
-          `#${target}`
-        )! as HTMLElement).style.cursor = feature ? "pointer" : "";
+        (
+          this.mapDivDocument!.querySelector(`#${target}`)! as HTMLElement
+        ).style.cursor = feature ? "pointer" : "";
         return;
       }
-      (this.mapDivDocument!.querySelector(
-        `#${target}`
-      )! as HTMLElement).style.cursor = "";
+      (
+        this.mapDivDocument!.querySelector(`#${target}`)! as HTMLElement
+      ).style.cursor = "";
     };
     this.mapObject.on("pointermove", moveHandler);
     const mapOutHandler = (evt: any) => {
@@ -689,7 +694,9 @@ export class MaplatApp extends EventTarget {
       : defaultpin;
     const promise = coords
       ? (function () {
-          return (src as HistMap | NowMap).merc2SysCoordAsync_ignoreBackground(coords);
+          return (src as HistMap | NowMap).merc2SysCoordAsync_ignoreBackground(
+            coords
+          );
         })()
       : x && y
       ? new Promise(resolve => {
@@ -697,7 +704,9 @@ export class MaplatApp extends EventTarget {
         })
       : (function () {
           const merc = transform(lnglat, "EPSG:4326", "EPSG:3857");
-          return (src as HistMap | NowMap).merc2SysCoordAsync_ignoreBackground(merc);
+          return (src as HistMap | NowMap).merc2SysCoordAsync_ignoreBackground(
+            merc
+          );
         })();
     return promise.then((xy: any) => {
       if (!xy) return;
@@ -1365,9 +1374,8 @@ export class MaplatApp extends EventTarget {
       this.mercBuffer.mercs &&
       this.mercBuffer.buffer[(this.from as HistMap | NowMap).mapID]
     ) {
-      const buffer = this.mercBuffer.buffer[
-        (this.from as HistMap | NowMap).mapID
-      ];
+      const buffer =
+        this.mercBuffer.buffer[(this.from as HistMap | NowMap).mapID];
       if (
         buffer[0][0] == current[0][0] &&
         buffer[0][1] == current[0][1] &&
