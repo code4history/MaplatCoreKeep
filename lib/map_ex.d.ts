@@ -1,4 +1,5 @@
 import { Feature, Map } from "ol";
+import Gyeonghwon from "gyeonghwon";
 export declare class MaplatMap extends Map {
     _first_gps_request: any;
     _overlay_group: any;
@@ -7,6 +8,7 @@ export declare class MaplatMap extends Map {
     geolocation: any;
     homePosition: any;
     __AvoidFirstMoveStart: boolean;
+    gyeonghwon: Gyeonghwon;
     constructor(optOptions: any);
     static spawnLayer(layer: any, source: any, container: any): any;
     getLayer(name?: string): any;
@@ -15,7 +17,7 @@ export declare class MaplatMap extends Map {
     removeFeature(feature: any, layer: any): void;
     resetFeature(layer: any): void;
     setGPSPosition(pos: any, type?: any): void;
-    setMarker(xy: any, data: any, markerStyle: any, layer: any): Feature<any>;
+    setMarker(xy: any, data: any, markerStyle: any, layer: any): Promise<Feature<any>>;
     resetMarker(layer: any): void;
     setLine(xys: any, stroke: any, layer: any): Feature<any>;
     setVector(coords: any, type: string | undefined, style: any, layer: any): Feature<any>;

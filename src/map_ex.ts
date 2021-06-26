@@ -16,6 +16,7 @@ import bluedot_small from "../parts/bluedot_small.png";
 import defaultpin from "../parts/defaultpin.png";
 import IconAnchorUnits from "ol/style/IconAnchorUnits";
 import { HistMap } from "./source/histmap";
+import Gyeonghwon from "gyeonghwon";
 
 const gpsStyle = new Style({
   image: new Icon({
@@ -66,6 +67,8 @@ export class MaplatMap extends Map {
   geolocation: any;
   homePosition: any;
   __AvoidFirstMoveStart: boolean;
+  gyeonghwon: Gyeonghwon;
+
   constructor(optOptions: any) {
     optOptions = normalizeArg(optOptions || {});
     const vectorLayer = new layerVector({
@@ -136,6 +139,11 @@ export class MaplatMap extends Map {
     view.on("propertychange", movestart);
     this.on("moveend", () => {
       view.on("propertychange", movestart);
+    });
+    this.gyeonghwon = new Gyeonghwon({forceLoop: true});
+    this.gyeonghwon.addEventListener('need_render', () => {
+      this.render();
+      return false;
     });
   }
   static spawnLayer(layer: any, source: any, container: any) {
@@ -220,18 +228,26 @@ export class MaplatMap extends Map {
       }
     }
   }
-  setMarker(xy: any, data: any, markerStyle: any, layer: any) {
+  async setMarker(xy: any, data: any, markerStyle: any, layer: any) {
     if (!layer) layer = "marker";
     data["geometry"] = new Point(xy);
     if (!markerStyle) markerStyle = markerDefaultStyle;
     else if (typeof markerStyle == "string") {
+      const iconOption: any = {
+        anchor: [0.5, 1.0],
+        anchorXUnits: IconAnchorUnits.FRACTION,
+        anchorYUnits: IconAnchorUnits.FRACTION
+      };
+      try {
+        const anim = await this.gyeonghwon.animateNewContext(markerStyle);
+        iconOption.img = anim.latestContext().canvas;
+        iconOption.imgSize = [anim.width, anim.height];
+      } catch(e) {
+        iconOption.src = markerStyle;
+      }
+
       markerStyle = new Style({
-        image: new Icon({
-          anchor: [0.5, 1.0],
-          anchorXUnits: IconAnchorUnits.FRACTION,
-          anchorYUnits: IconAnchorUnits.FRACTION,
-          src: markerStyle
-        })
+        image: new Icon(iconOption)
       });
     } else if (!(markerStyle instanceof Style)) {
       markerStyle = new Style({

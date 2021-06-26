@@ -111,7 +111,7 @@ export declare class MaplatApp extends EventTarget {
     raiseChangeViewpoint(): void;
     currentMapInfo(): any;
     mapInfo(mapID: string): any;
-    setMarker(data: any): Promise<void>;
+    setMarker(data: any): Promise<any>;
     resetMarker(): void;
     setLine(data: any): void;
     setVector(data: any): void;

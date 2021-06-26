@@ -673,7 +673,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 if (!xy)
                     return;
                 if (src.insideCheckSysCoord(xy)) {
-                    _this.mapObject.setMarker(xy, { datum: data }, icon);
+                    return _this.mapObject.setMarker(xy, { datum: data }, icon);
                 }
             });
         };

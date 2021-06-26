@@ -711,7 +711,7 @@ export class MaplatApp extends EventTarget {
     return promise.then((xy: any) => {
       if (!xy) return;
       if ((src as HistMap | NowMap).insideCheckSysCoord(xy)) {
-        this.mapObject.setMarker(xy, { datum: data }, icon);
+        return this.mapObject.setMarker(xy, { datum: data }, icon);
       }
     });
   }
