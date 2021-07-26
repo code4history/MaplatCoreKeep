@@ -1,1 +1,3 @@
 /*! @maplat/core v0.9.3 | Kohei Otsuka, Code for History | license: Maplat Limited License 1.1 */
+
+/*! licenses are at assets/maplat_core.licenses.txt*/

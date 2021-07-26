@@ -10,6 +10,7 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require("terser-webpack-plugin");
+const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
 
 module.exports = {
   mode: 'production',
@@ -37,7 +38,15 @@ module.exports = {
     }),
     new MiniCssExtractPlugin({
       filename: "./assets/[name].css"
-    })
+    }),
+    /*new LicenseWebpackPlugin({
+      additionalModules: [
+        {
+          name: 'MaplatCore',
+          directory: path.resolve(__dirname, '..')
+        }
+      ]
+    })*/
   ],
 
   externals: [

@@ -4,6 +4,7 @@
 const path = require("path");
 const { merge } = require("webpack-merge");
 const common = require("./webpack.config.common.js");
+const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
 
 module.exports = merge(common, {
   output: {
@@ -20,4 +21,24 @@ module.exports = merge(common, {
       }
     ]
   },
+
+  plugins: [
+    new LicenseWebpackPlugin({
+      outputFilename: 'assets/[name].licenses.txt',
+      addBanner: true,
+      renderBanner: (filename, modules) => {
+        //console.log(modules);
+        return '/*! licenses are at ' + filename + '*/';
+      },
+      additionalModules: [
+        {
+          name: '@maplat/core',
+          directory: path.resolve(__dirname, '..')
+        }
+      ],
+      chunkIncludeExcludeTest: {
+        exclude: ['child', 'HtmlWebpackPlugin_0']
+      }
+    })
+  ]
 });
