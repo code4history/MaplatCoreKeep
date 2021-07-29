@@ -1,11 +1,11 @@
-var MaplatApp = require('../src/index').MaplatApp;
+import { MaplatApp } from "../src";
+import "../less/core.less"
 
-var Maplat = window.Maplat = {};
-Maplat.createObject = function(option) {
-    return new Promise(function(resolve) {
-        var app = new MaplatApp(option);
-        app.waitReady.then(function() {
-            resolve(app);
-        });
-    });
-};
+const Maplat = window.Maplat = {};
+
+Maplat.createObject = option => new Promise((resolve => {
+  const app = new MaplatApp(option);
+  app.waitReady.then(() => {
+    resolve(app);
+  });
+}));
